@@ -35,6 +35,6 @@ def last_choice(frontier):
     return frontier.pop(-1)
 
 if __name__=="__main__":
-    print "random search:", tree_search(None, random_choice)[0]
-    print "first search:", tree_search(None, first_choice)[0]
-    print "last search:", tree_search(None, last_choice)[0]
+    #print "random search: ", tree_search(None, random_choice)[0]
+    print "bfs: ", tree_search(None, first_choice)
+    print "dfs: ", tree_search(None, last_choice)
