@@ -1,8 +1,8 @@
 graph = {
     "Arad":           [("Zerind", 75), ("Timisoara", 118), ("Sibiu", 140)],
     "Zerind":         [("Arad", 75), ("Oradea", 71)],
-    "Timisoara":      [("Arad", 75), ("Lugoj", 111)],
-    "Sibiu":          [("Arad", 75), ("Oradea", 151), ("Fagaras", 99), ("Rimnicu Vilcea", 80)],
+    "Timisoara":      [("Arad", 118), ("Lugoj", 111)],
+    "Sibiu":          [("Arad", 140), ("Oradea", 151), ("Fagaras", 99), ("Rimnicu Vilcea", 80)],
     "Oradea":         [("Zerind", 71), ("Sibiu", 151)],
     "Lugoj":          [("Timisoara", 111), ("Mehadia", 70)],
     "Fagaras":        [("Sibiu", 99), ("Bucharest", 211)],
