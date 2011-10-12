@@ -24,7 +24,7 @@ def tree_search(problem, remove_choice):
         #for a in actions
         for node in graph[city]:
             ncity, ncost = node
-            if not ncity in explored:
+            if not node in explored:
                 frontier.append(path + [node])
 
 def cheapest_first(frontier):
@@ -40,4 +40,4 @@ def cheapest_first(frontier):
 
 if __name__=="__main__":
     #print "random search: ", tree_search(None, random_choice)[0]
-    print "ucs: ", tree_search(None, cheapest_first)[0]
+    print "ucs: ", tree_search(None, cheapest_first)
