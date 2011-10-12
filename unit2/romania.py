@@ -20,3 +20,27 @@ graph = {
     "Iasi":           [("Vaslui", 92), ("Neamt", 87)],
     "Neamt":          [("Iasi", 87)]
 }
+
+#the straight line distance between the city and Bucharest
+straight_line_distance = {
+    "Arad":           366,
+    "Zerind":         374,
+    "Timisoara":      329,
+    "Sibiu":          253,
+    "Oradea":         380,
+    "Lugoj":          244,
+    "Fagaras":        176,
+    "Rimnicu Vilcea": 193,
+    "Mehadia":        241,
+    "Bucharest":      0,
+    "Pitesti":        100,
+    "Craiova":        160,
+    "Drobeta":        242,
+    "Giurgiu":        77,
+    "Urziceni":       80,
+    "Hirsova":        151,
+    "Vaslui":         199,
+    "Eforie":         161,
+    "Iasi":           226,
+    "Neamt":          234
+}
