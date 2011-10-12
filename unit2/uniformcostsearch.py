@@ -15,7 +15,7 @@ def tree_search(problem, remove_choice):
         s = path[-1]
         city, cost = s
 
-        explored.add(s)
+        explored.add(city)
 
         #if s is a goal, return path
         if city == "Bucharest":
@@ -24,7 +24,7 @@ def tree_search(problem, remove_choice):
         #for a in actions
         for node in graph[city]:
             ncity, ncost = node
-            if not node in explored:
+            if not ncity in explored:
                 frontier.append(path + [node])
 
 def cheapest_first(frontier):
