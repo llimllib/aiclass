@@ -37,7 +37,7 @@ def tree_search(problem, remove_choice):
             return (path, frontier)
 
         #for a in actions
-        for node in graph[city]:
+        for node in problem.actions(city):
             ncity, ncost = node
             if not ncity in explored:
                 frontier.append(path + [node])
