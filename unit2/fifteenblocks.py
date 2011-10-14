@@ -184,6 +184,7 @@ def main():
         print
 
 if __name__=="__main__":
+    #pypy runs about 15% faster than regular python
     import cProfile
     cProfile.run('main()')
     #main()
