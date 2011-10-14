@@ -86,17 +86,18 @@ class FifteenBlocksDistanceHeuristic(FifteenBlocksProblem):
         #h is the total manhattan distance from the solution
         h = 0
 
-        pairs = zip(path[-1], self.goalstate)
+        pairs = zip(path[-1], range(16))
         for a,b in pairs:
             if a == -1: continue
 
             #I believe sum(divmod(diff, 4)) will be the manhattan distance
             #between each point and where it should be
-            print a, b, divmod(abs(a-b), 4)
-            h += sum(divmod(abs(a-b), 4))
+            rowa, cola = divmod(a, 4)
+            rowb, colb = divmod(b, 4)
+            print a, b, abs(rowa-rowb) + abs(cola-colb)
+            h += abs(rowa-rowb) + abs(cola-colb)
 
         print "total distance: ", h, path[-1]
-        1/0
 
         return g + h
 
