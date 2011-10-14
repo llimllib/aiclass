@@ -131,6 +131,9 @@ def graph_search(problem):
                 #now push it onto the priority queue
                 heapq.heappush(frontier, child)
 
+                #and add it to the frontierset
+                frontierset.add(newboardt)
+
 def randomboard(n):
     """Make *n* valid moves to shuffle the board
 
