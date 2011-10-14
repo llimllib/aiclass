@@ -1,4 +1,6 @@
 import random
+import heapq
+from collections import namedtuple
 from romania import graph, straight_line_distance
 
 class FifteenBlocksProblem(object):
@@ -94,54 +96,44 @@ class FifteenBlocksDistanceHeuristic(FifteenBlocksProblem):
             #between each point and where it should be
             rowa, cola = divmod(a, 4)
             rowb, colb = divmod(b, 4)
-            print a, b, abs(rowa-rowb) + abs(cola-colb)
             h += abs(rowa-rowb) + abs(cola-colb)
-
-        print "total distance: ", h, path[-1]
 
         return g + h
 
-def tree_search(problem, remove_choice):
-    frontier = [[problem.initial]]
+#define a path class. priority is a positive integer, path is a list of boards
+Pathnode = namedtuple('Pathnode', ['priority', 'path'])
+
+def graph_search(problem):
+    initialpath = Pathnode(0, [problem.initial])
+
+    #frontier is a heap; we'll maintain it using heapq methods. Norvig suggests maintaining
+    #a parallel set of paths for membership testing, but I don't see where it would be useful.
+    frontier = [initialpath]
+
     explored = set()
 
     while 1:
         if not frontier: return False
 
-        path = remove_choice(frontier, problem)
-        s = path[-1]
+        pathnode = heapq.heappop(frontier)
+        s = pathnode.path[-1]
 
         explored.add(tuple(s))
 
-        #if s is a goal, return path
         if problem.goaltest(s):
-            return (path, frontier)
+            return pathnode.path
 
-        #for a in actions
         for action in problem.actions(s):
-            node = problem.result(s, action)
-            if not tuple(node) in explored:
-                #print "action", action, "results in node", node
-                #this implicitly creates a copy of path
-                frontier.append(path + [node])
+            newboard = problem.result(s, action)
+            if not tuple(newboard) in explored:
+                #we have a new board. Create a path:
+                newpath = pathnode.path + [newboard]
 
-def astar(frontier, problem):
-    cheapest = None
-    cheapest_path = None
+                #calculate its cost
+                pathcost = problem.pathcost(newpath)
 
-    for i, path in enumerate(frontier):
-        pathcost = problem.pathcost(path)
-        #print "path", i, path, "has cost", pathcost
-        if cheapest is None or pathcost < cheapest:
-            #print "setting cheapest to ", i, "with pathcost", pathcost
-            cheapest = pathcost
-            cheapest_path = i
-
-    #print "choosing path", cheapest_path
-    #FifteenBlocksProblem.printboard(frontier[cheapest_path][-1])
-    print cheapest
-
-    return frontier.pop(cheapest_path)
+                #now push it onto the priority queue
+                heapq.heappush(frontier, Pathnode(pathcost, newpath))
 
 def randomboard(n):
     """Make *n* valid moves to shuffle the board
@@ -165,27 +157,21 @@ def randomboard(n):
 
 if __name__=="__main__":
     #blocks = FifteenBlocksNumberHeuristic([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,-1])
-    #result = tree_search(blocks, astar)
+    #result = graph_search(blocks, astar)
     #print result
 
     #blocks = FifteenBlocksNumberHeuristic([0,1,2,3,4,5,6,7,8,9,10,11,12,13,-1,14])
-    #result = tree_search(blocks, astar)
+    #result = graph_search(blocks, astar)
     #print result
 
     #blocks = FifteenBlocksDistanceHeuristic([0,1,2,3,4,5,6,7,8,9,10,11,12,-1,13,14])
-    #result = tree_search(blocks, astar)
+    blocks = FifteenBlocksDistanceHeuristic(randomboard(200))
+    print "done shuffling"
+    result = graph_search(blocks)
+    for board in result:
+        FifteenBlocksProblem.printboard(board)
+        print
+
+    #blocks = FifteenBlocksDistanceHeuristic(randomboard(1000))
+    #result = graph_search(blocks, astar)
     #print result
-
-    #blocks = FifteenBlocksNumberHeuristic(randomboard(10))
-    #result = tree_search(blocks, astar)
-    #print result
-
-    blocks = FifteenBlocksDistanceHeuristic([0, 1, 2, 3, 4, 9, 5, 7, 8, 6, 10, 11, 12, -1, 13, 14])
-    result = tree_search(blocks, astar)
-    print result
-
-"""Pathological behavior exhibited on:
-
-[0, 1, 2, 3, 4, 9, 5, 7, 8, 6, 10, 11, 12, -1, 13, 14]
-
-Where the solution should be: left, left. WTF?"""
