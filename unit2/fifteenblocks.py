@@ -59,8 +59,11 @@ class FifteenBlocksProblem(object):
     def goaltest(self, board):
         return board == self.goalstate
 
-    def pathcost(self, path):
-        pass
+    def pathcost(self, node):
+        if node.parent:
+            return node.parent.path_cost + 1
+        else:
+            return 0
 
     @staticmethod
     def printboard(board):
@@ -68,12 +71,6 @@ class FifteenBlocksProblem(object):
         print "\t".join(map(str, board[4:8]))
         print "\t".join(map(str, board[8:12]))
         print "\t".join(map(str, board[12:16]))
-
-    def pathcost(self, node):
-        if node.parent:
-            return node.parent.path_cost + 1
-        else:
-            return 0
 
 class FifteenBlocksNumberHeuristic(FifteenBlocksProblem):
     def h(self, node):
