@@ -124,7 +124,6 @@ def graph_search(problem):
                 #we have a new board. Create a path:
                 cost = problem.pathcost(node)
 
-                #TODO: NumberHeuristic won't work with this yet. FIXME
                 h = problem.h(node)
 
                 child = Node(h + cost, cost, newboard, action, node)
