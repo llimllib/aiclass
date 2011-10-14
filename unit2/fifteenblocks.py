@@ -2,6 +2,7 @@ import random
 import heapq
 from collections import namedtuple
 from romania import graph, straight_line_distance
+from manhattancache import manhattancache
 
 class FifteenBlocksProblem(object):
     def __init__(self, initial):
@@ -92,9 +93,7 @@ class FifteenBlocksDistanceHeuristic(FifteenBlocksProblem):
         for a,b in pairs:
             if a == -1: continue
 
-            rowa, cola = divmod(a, 4)
-            rowb, colb = divmod(b, 4)
-            h += abs(rowa-rowb) + abs(cola-colb)
+            h += manhattancache[a][b]
 
         return g + h
 
@@ -166,7 +165,3 @@ if __name__=="__main__":
     import cProfile
     cProfile.run('main()')
     #main()
-
-"""here's our test case:
-[-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10]
-"""
