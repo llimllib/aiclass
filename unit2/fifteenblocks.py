@@ -102,7 +102,7 @@ def graph_search(problem):
 
     #frontier is a heap; we'll maintain it using heapq methods.
     frontier = [root]
-    frontierset = set()
+    frontierset = set([tuple(root.state)])
 
     explored = set()
 
@@ -112,7 +112,9 @@ def graph_search(problem):
         node = heapq.heappop(frontier)
         s = node.state
 
-        explored.add(tuple(s))
+        ts = tuple(s)
+        frontierset.remove(ts)
+        explored.add(ts)
 
         if problem.goaltest(s):
             return node
