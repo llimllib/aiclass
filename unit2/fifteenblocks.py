@@ -100,9 +100,9 @@ Node = namedtuple('Node', ['f', 'path_cost', 'state', 'action', 'parent'])
 def graph_search(problem):
     root = Node(0, 0, problem.initial, None, None)
 
-    #frontier is a heap; we'll maintain it using heapq methods. Norvig suggests maintaining
-    #a parallel set of nodes for membership testing, but I don't see where it would be useful.
+    #frontier is a heap; we'll maintain it using heapq methods.
     frontier = [root]
+    frontierset = set()
 
     explored = set()
 
@@ -119,7 +119,8 @@ def graph_search(problem):
 
         for action in problem.actions(s):
             newboard = problem.result(s, action)
-            if not tuple(newboard) in explored:
+            newboardt = tuple(newboard)
+            if newboardt not in explored and newboardt not in frontierset:
                 #we have a new board. Create a path:
                 cost = problem.pathcost(node)
 
