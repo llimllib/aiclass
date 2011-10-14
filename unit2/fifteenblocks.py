@@ -92,8 +92,6 @@ class FifteenBlocksDistanceHeuristic(FifteenBlocksProblem):
         for a,b in pairs:
             if a == -1: continue
 
-            #I believe sum(divmod(diff, 4)) will be the manhattan distance
-            #between each point and where it should be
             rowa, cola = divmod(a, 4)
             rowb, colb = divmod(b, 4)
             h += abs(rowa-rowb) + abs(cola-colb)
@@ -156,7 +154,8 @@ def randomboard(n):
     return board
 
 def main():
-    blocks = FifteenBlocksDistanceHeuristic(randomboard(200))
+    #blocks = FifteenBlocksDistanceHeuristic(randomboard(200))
+    blocks = FifteenBlocksDistanceHeuristic([-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10])
     print "done shuffling"
     result = graph_search(blocks)
     for board in result:
@@ -164,4 +163,10 @@ def main():
         print
 
 if __name__=="__main__":
-    main()
+    import cProfile
+    cProfile.run('main()')
+    #main()
+
+"""here's our test case:
+[-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10]
+"""
