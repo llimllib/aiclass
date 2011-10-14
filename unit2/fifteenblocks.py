@@ -149,13 +149,35 @@ def randomboard(n):
     for i in range(n):
         move = random.choice(p.actions(board))
         board = p.result(board, move)
+
+    print "done shuffling"
     
     return board
 
+def cache_manhattan():
+    cache = {}
+    for block in range(15):
+        cache[block] = {}
+        for i in range(16):
+            rowa, cola = divmod(block, 4)
+            rowb, colb = divmod(i, 4)
+            cache[block][i] = abs(rowa-rowb) + abs(cola-colb)
+    return cache
+
+
 def main():
+    #usually works... slowly
     #blocks = FifteenBlocksDistanceHeuristic(randomboard(200))
+
+    #Distance works, number doesn't
     blocks = FifteenBlocksDistanceHeuristic([-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10])
-    print "done shuffling"
+    #blocks = FifteenBlocksNumberHeuristic([-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10])
+
+    #here are the tests from http://pyrorobotics.org/?page=PyroModuleAI:Search
+    #blocks = FifteenBlocksDistanceHeuristic([5,1,11,7, 9,2,12,4, 13,14,3,10, 8,-1,6,15])
+    #blocks = FifteenBlocksDistanceHeuristic([1,2,7,4, 9,5,8,10, 13,15,6,12, 14,-1,3,11])
+    #blocks = FifteenBlocksDistanceHeuristic([7,9,4,1, 13,6,5,10, -1,8,3,12, 14,15,2,11])
+
     result = graph_search(blocks)
     for board in result:
         FifteenBlocksProblem.printboard(board)
