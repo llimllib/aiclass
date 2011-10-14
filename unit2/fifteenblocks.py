@@ -155,16 +155,7 @@ def randomboard(n):
     
     return board
 
-if __name__=="__main__":
-    #blocks = FifteenBlocksNumberHeuristic([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,-1])
-    #result = graph_search(blocks, astar)
-    #print result
-
-    #blocks = FifteenBlocksNumberHeuristic([0,1,2,3,4,5,6,7,8,9,10,11,12,13,-1,14])
-    #result = graph_search(blocks, astar)
-    #print result
-
-    #blocks = FifteenBlocksDistanceHeuristic([0,1,2,3,4,5,6,7,8,9,10,11,12,-1,13,14])
+def main():
     blocks = FifteenBlocksDistanceHeuristic(randomboard(200))
     print "done shuffling"
     result = graph_search(blocks)
@@ -172,6 +163,5 @@ if __name__=="__main__":
         FifteenBlocksProblem.printboard(board)
         print
 
-    #blocks = FifteenBlocksDistanceHeuristic(randomboard(1000))
-    #result = graph_search(blocks, astar)
-    #print result
+if __name__=="__main__":
+    main()
