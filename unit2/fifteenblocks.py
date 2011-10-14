@@ -1,7 +1,6 @@
 import random
 import heapq
 from collections import namedtuple
-from romania import graph, straight_line_distance
 from manhattancache import manhattancache
 
 class FifteenBlocksProblem(object):
