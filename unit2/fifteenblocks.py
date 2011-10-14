@@ -69,68 +69,71 @@ class FifteenBlocksProblem(object):
         print "\t".join(map(str, board[8:12]))
         print "\t".join(map(str, board[12:16]))
 
-class FifteenBlocksNumberHeuristic(FifteenBlocksProblem):
-    def pathcost(self, path):
-        #g is the number of moves taken to get to this path
-        g = len(path)
+    def pathcost(self, node):
+        if node.parent:
+            return node.parent.path_cost + 1
+        else:
+            return 0
 
+class FifteenBlocksNumberHeuristic(FifteenBlocksProblem):
+    def h(self, node):
         #h is the number of positions in the most recent state that differ
         #from the goal state
-        pairs = zip(path[-1], self.goalstate)
-        h = sum(1 for a,b in pairs if a!=b)
-
-        return g + h
+        h = 0
+        for i in range(16): 
+            if node.state[i] != self.goalstate[i]:
+                h += 1
+        return h
 
 class FifteenBlocksDistanceHeuristic(FifteenBlocksProblem):
-    def pathcost(self, path):
-        #g is the number of moves taken to get to this path
-        g = len(path)
-
+    def h(self, node):
         #h is the total manhattan distance from the solution
         h = 0
 
-        pairs = zip(path[-1], range(16))
+        pairs = zip(node.state, range(16))
         for a,b in pairs:
             if a == -1: continue
 
             h += manhattancache[a][b]
 
-        return g + h
+        return h
 
-#define a path class. priority is a positive integer, path is a list of boards
-Pathnode = namedtuple('Pathnode', ['priority', 'path'])
+#the node data structure
+Node = namedtuple('Node', ['f', 'path_cost', 'state', 'action', 'parent'])
 
 def graph_search(problem):
-    initialpath = Pathnode(0, [problem.initial])
+    root = Node(0, 0, problem.initial, None, None)
 
     #frontier is a heap; we'll maintain it using heapq methods. Norvig suggests maintaining
-    #a parallel set of paths for membership testing, but I don't see where it would be useful.
-    frontier = [initialpath]
+    #a parallel set of nodes for membership testing, but I don't see where it would be useful.
+    frontier = [root]
 
     explored = set()
 
     while 1:
         if not frontier: return False
 
-        pathnode = heapq.heappop(frontier)
-        s = pathnode.path[-1]
+        node = heapq.heappop(frontier)
+        s = node.state
 
         explored.add(tuple(s))
 
         if problem.goaltest(s):
-            return pathnode.path
+            return node
 
         for action in problem.actions(s):
             newboard = problem.result(s, action)
             if not tuple(newboard) in explored:
                 #we have a new board. Create a path:
-                newpath = pathnode.path + [newboard]
+                cost = problem.pathcost(node)
 
-                #calculate its cost
-                pathcost = problem.pathcost(newpath)
+                #TODO: NumberHeuristic won't work with this yet. FIXME
+                h = problem.h(node)
+
+                child = Node(h + cost, cost, newboard, action, node)
 
                 #now push it onto the priority queue
-                heapq.heappush(frontier, Pathnode(pathcost, newpath))
+                heapq.heappush(frontier, child)
 
 def randomboard(n):
     """Make *n* valid moves to shuffle the board
@@ -166,22 +169,25 @@ def cache_manhattan():
 
 
 def main():
-    #usually works... slowly
-    #blocks = FifteenBlocksDistanceHeuristic(randomboard(200))
+    #blocks = FifteenBlocksDistanceHeuristic(randomboard(2))
+    blocks = FifteenBlocksDistanceHeuristic(randomboard(2000))
 
     #Distance works, number doesn't
-    blocks = FifteenBlocksDistanceHeuristic([-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10])
+    #blocks = FifteenBlocksDistanceHeuristic([-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10])
     #blocks = FifteenBlocksNumberHeuristic([-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10])
 
     #here are the tests from http://pyrorobotics.org/?page=PyroModuleAI:Search
-    #blocks = FifteenBlocksDistanceHeuristic([5,1,11,7, 9,2,12,4, 13,14,3,10, 8,-1,6,15])
-    #blocks = FifteenBlocksDistanceHeuristic([1,2,7,4, 9,5,8,10, 13,15,6,12, 14,-1,3,11])
-    #blocks = FifteenBlocksDistanceHeuristic([7,9,4,1, 13,6,5,10, -1,8,3,12, 14,15,2,11])
+    #blocks = FifteenBlocksDistanceHeuristic([4,0,10,6, 8,1,11,3, 12,13,2,9, 7,-1,5,14])
+    #blocks = FifteenBlocksDistanceHeuristic([0,1,6,3, 8,4,7,9, 12,14,5,11, 13,-1,2,10])
+    #blocks = FifteenBlocksDistanceHeuristic([6,8,3,0, 12,5,4,9, -1,7,2,11, 13,14,1,10])
 
     result = graph_search(blocks)
-    for board in result:
-        FifteenBlocksProblem.printboard(board)
-        print
+    print "result: ", result.state
+    #while result.parent:
+    #    print "state", result.state
+    #    FifteenBlocksProblem.printboard(result.state)
+    #    print
+    #    result = result.parent
 
 if __name__=="__main__":
     #pypy runs about 15% faster than regular python
