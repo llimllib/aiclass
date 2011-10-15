@@ -112,12 +112,12 @@ def graph_search(problem):
         node = heapq.heappop(frontier)
         s = node.state
 
+        if problem.goaltest(s):
+            return node
+
         ts = tuple(s)
         frontierset.remove(ts)
         explored.add(ts)
-
-        if problem.goaltest(s):
-            return node
 
         for action in problem.actions(s):
             newboard = problem.result(s, action)
