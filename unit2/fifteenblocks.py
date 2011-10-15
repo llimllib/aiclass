@@ -168,6 +168,28 @@ def cache_manhattan():
             cache[block][i] = abs(rowa-rowb) + abs(cola-colb)
     return cache
 
+def test():
+    tests = [
+        FifteenBlocksDistanceHeuristic([-1] + range(14,-1,-1)),
+        FifteenBlocksDistanceHeuristic([-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10]),
+        FifteenBlocksDistanceHeuristic([4,0,10,6, 8,1,11,3, 12,13,2,9, 7,-1,5,14]),
+        FifteenBlocksDistanceHeuristic([0,1,6,3, 8,4,7,9, 12,14,5,11, 13,-1,2,10]),
+        FifteenBlocksDistanceHeuristic([6,8,3,0, 12,5,4,9, -1,7,2,11, 13,14,1,10]),
+    ]
+
+    for t in tests:
+        print "testing %s" % t.initial
+        result = graph_search(t)
+        assert result.state == [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,-1]
+
+        pathlen = 0
+        while result.parent:
+            pathlen += 1
+            result = result.parent
+        print "%s nodes in solution" % pathlen
+
+        assert pathlen < 81
+
 
 def main():
     #blocks = FifteenBlocksDistanceHeuristic(randomboard(2))
@@ -194,4 +216,5 @@ if __name__=="__main__":
     #pypy runs about 15% faster than regular python
     #import cProfile
     #cProfile.run('main()')
-    main()
+    #main()
+    test()
