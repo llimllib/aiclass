@@ -1,12 +1,19 @@
 import random
 import heapq
+import time
 from collections import namedtuple
 from manhattancache import manhattancache
+
+def swap(tup, idx1, idx2):
+    #is there a better way to swap tuple indexes?
+    l = list(tup)
+    l[idx1], l[idx2] = l[idx2], l[idx1]
+    return tuple(l)
 
 class FifteenBlocksProblem(object):
     def __init__(self, initial):
         self.initial = initial
-        self.goalstate = range(15) + [-1]
+        self.goalstate = tuple(range(15)) + (-1,)
 
     #board is a 16-element list of integers with -1 representing the "hole"
     def actions(self, board):
@@ -34,26 +41,21 @@ class FifteenBlocksProblem(object):
         3 2
 
         move the 2 up by swapping 2 and -1"""
-        #copy the board
-        board = board[:]
-
         #find the hole
         idx = board.index(-1)
 
         if action == "left":
             assert idx not in (3,7,11,15)
-            board[idx], board[idx+1] = board[idx+1], board[idx]
+            return swap(board, idx, idx+1)
         elif action == "right":
             assert idx not in (0,4,8,12)
-            board[idx], board[idx-1] = board[idx-1], board[idx]
+            return swap(board, idx, idx-1)
         elif action == "up":
             assert idx not in (12,13,14,15)
-            board[idx], board[idx+4] = board[idx+4], board[idx]
+            return swap(board, idx, idx+4)
         elif action == "down":
             assert idx not in (0,1,2,3)
-            board[idx], board[idx-4] = board[idx-4], board[idx]
-
-        return board
+            return swap(board, idx, idx-4)
 
     def goaltest(self, board):
         return board == self.goalstate
@@ -63,6 +65,31 @@ class FifteenBlocksProblem(object):
             return node.parent.path_cost + 1
         else:
             return 0
+
+    @staticmethod
+    def stringnodes(nodes):
+        """turn a list of boards into a string"""
+        result = ""
+        for node in nodes:
+            result += "\t".join(map(str, node.state[0:4])) + "\t|\t"
+        result += "\n"
+        for node in nodes:
+            result += "\t".join(map(str, node.state[4:8])) + "\t|\t"
+        result += "\n"
+        for node in nodes:
+            result += "\t".join(map(str, node.state[8:12])) + "\t|\t"
+        result += "\n"
+        for node in nodes:
+            result += "\t".join(map(str, node.state[12:16])) + "\t|\t"
+        result += "\n"
+        for node in nodes:
+            if node.parent:
+                result += "%s\t%s\t%s\t%s\t|\t" % (node.f, node.action, str(id(node))[-5:], str(id(node.parent))[-5:])
+            else:
+                result += "%s\t%s\t%s\t%s\t|\t" % (node.f, node.action, str(id(node))[-5:], "null")
+        result += "\n"
+
+        return result
 
     @staticmethod
     def printboard(board):
@@ -82,17 +109,35 @@ class FifteenBlocksNumberHeuristic(FifteenBlocksProblem):
         return h
 
 class FifteenBlocksDistanceHeuristic(FifteenBlocksProblem):
-    def h(self, node):
+    def h(self, board):
         #h is the total manhattan distance from the solution
         h = 0
 
-        pairs = zip(node.state, range(16))
+        pairs = zip(board, range(16))
         for a,b in pairs:
             if a == -1: continue
 
             h += manhattancache[a][b]
 
         return h
+
+def printtree(frontier):
+    out = file("out.html", 'w')
+    out.write("<html><body><pre>")
+    levels = {}
+    already_printed = set()
+    for node in frontier:
+        while node:
+            if node not in already_printed:
+                levels.setdefault(node.path_cost, []).append(node)
+                already_printed.add(node)
+            node = node.parent
+
+    for level in sorted(levels):
+        out.write(FifteenBlocksProblem.stringnodes(levels[level]))
+        out.write("-------------------------------\n")
+    out.write("</pre></body></html>")
+    out.close()
 
 #the node data structure
 Node = namedtuple('Node', ['f', 'path_cost', 'state', 'action', 'parent'])
@@ -102,9 +147,11 @@ def graph_search(problem):
 
     #frontier is a heap; we'll maintain it using heapq methods.
     frontier = [root]
-    frontierset = set([tuple(root.state)])
 
     explored = set()
+
+    expanded = 0
+    t1 = time.time()
 
     while 1:
         if not frontier: return False
@@ -115,26 +162,25 @@ def graph_search(problem):
         if problem.goaltest(s):
             return node
 
-        ts = tuple(s)
-        frontierset.remove(ts)
-        explored.add(ts)
+        explored.add(s)
+        expanded += 1
+
+        if expanded % 100000 == 0:
+            t2 = time.time()
+            print "%.2fk nodes/sec" % (100/(t2-t1),)
+            t1 = time.time()
 
         for action in problem.actions(s):
-            newboard = problem.result(s, action)
-            newboardt = tuple(newboard)
-            if newboardt not in explored and newboardt not in frontierset:
-                #we have a new board. Create a path:
-                cost = problem.pathcost(node)
+            newstate = problem.result(s, action)
+            if newstate not in explored:
+                cost = node.path_cost + 1
 
-                h = problem.h(node)
+                h = problem.h(newstate)
 
-                child = Node(h + cost, cost, newboard, action, node)
+                child = Node(h + cost, cost, newstate, action, node)
 
                 #now push it onto the priority queue
                 heapq.heappush(frontier, child)
-
-                #and add it to the frontierset
-                frontierset.add(newboardt)
 
 def randomboard(n):
     """Make *n* valid moves to shuffle the board
@@ -170,17 +216,17 @@ def cache_manhattan():
 
 def test():
     tests = [
-        FifteenBlocksDistanceHeuristic([-1] + range(14,-1,-1)),
-        FifteenBlocksDistanceHeuristic([-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10]),
-        FifteenBlocksDistanceHeuristic([4,0,10,6, 8,1,11,3, 12,13,2,9, 7,-1,5,14]),
-        FifteenBlocksDistanceHeuristic([0,1,6,3, 8,4,7,9, 12,14,5,11, 13,-1,2,10]),
-        FifteenBlocksDistanceHeuristic([6,8,3,0, 12,5,4,9, -1,7,2,11, 13,14,1,10]),
+        FifteenBlocksDistanceHeuristic((-1,) + tuple(range(14,-1,-1))),
+        FifteenBlocksDistanceHeuristic((-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10)),
+        FifteenBlocksDistanceHeuristic((4,0,10,6, 8,1,11,3, 12,13,2,9, 7,-1,5,14)),
+        FifteenBlocksDistanceHeuristic((0,1,6,3, 8,4,7,9, 12,14,5,11, 13,-1,2,10)),
+        FifteenBlocksDistanceHeuristic((6,8,3,0, 12,5,4,9, -1,7,2,11, 13,14,1,10)),
     ]
 
     for t in tests:
-        print "testing %s" % t.initial
+        print "testing %s" % (t.initial,)
         result = graph_search(t)
-        assert result.state == [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,-1]
+        assert result.state == (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,-1)
 
         pathlen = 0
         while result.parent:
@@ -189,21 +235,23 @@ def test():
         print "%s nodes in solution" % pathlen
 
         assert pathlen < 81
+        break
 
 
 def main():
     #blocks = FifteenBlocksDistanceHeuristic(randomboard(2))
-    blocks = FifteenBlocksDistanceHeuristic(randomboard(2000))
+    #blocks = FifteenBlocksDistanceHeuristic(randomboard(2000))
 
     #Distance works, number doesn't
-    #blocks = FifteenBlocksDistanceHeuristic([-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10])
-    #blocks = FifteenBlocksNumberHeuristic([-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10])
+    #blocks = FifteenBlocksDistanceHeuristic((-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10))
+    #blocks = FifteenBlocksNumberHeuristic((-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10))
 
     #here are the tests from http://pyrorobotics.org/?page=PyroModuleAI:Search
-    #blocks = FifteenBlocksDistanceHeuristic([4,0,10,6, 8,1,11,3, 12,13,2,9, 7,-1,5,14])
-    #blocks = FifteenBlocksDistanceHeuristic([0,1,6,3, 8,4,7,9, 12,14,5,11, 13,-1,2,10])
-    #blocks = FifteenBlocksDistanceHeuristic([6,8,3,0, 12,5,4,9, -1,7,2,11, 13,14,1,10])
+    #blocks = FifteenBlocksDistanceHeuristic((4,0,10,6, 8,1,11,3, 12,13,2,9, 7,-1,5,14))
+    #blocks = FifteenBlocksDistanceHeuristic((0,1,6,3, 8,4,7,9, 12,14,5,11, 13,-1,2,10))
+    blocks = FifteenBlocksDistanceHeuristic((6,8,3,0, 12,5,4,9, -1,7,2,11, 13,14,1,10))
 
+    print "graph: ", blocks.initial
     result = graph_search(blocks)
     print "result: ", result.state
     #while result.parent:
@@ -216,5 +264,5 @@ if __name__=="__main__":
     #pypy runs about 15% faster than regular python
     #import cProfile
     #cProfile.run('main()')
-    #main()
-    test()
+    main()
+    #test()
