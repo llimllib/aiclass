@@ -1,0 +1,29 @@
+<html><head><title>Soemthing</title>
+<!-- include before jQuery to make sure it's not depending on it -->
+<script src="sample.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+<script>
+$(function() {
+    var histogram = [0,0,0]
+    for (var i=0; i < 100000; i++) {
+        //We want to sample `value` with `weight` probability.
+        var particles = [0, 1, 2];
+        var weights = [.5, .25, .25];
+
+        var sample = weighted_sample(weights, particles);
+        histogram[sample] += 1;
+        //$("#samples").append(sample + ", ");
+    }
+
+    $("#histogram").append(histogram.toString());
+});
+</script>
+</head><body>
+Here's some samples:
+<div id="samples">
+</div>
+Histogram:
+<div id="histogram">
+</div>
+</body>
+</html>

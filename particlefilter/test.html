@@ -1,0 +1,49 @@
+<html><head><title>Soemthing</title>
+<!-- include before jQuery to make sure it's not depending on it -->
+<script src="sample.js"></script>
+<script src="drawmap.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+<script>
+function movebot(direction) {
+    var move = Math.random();
+    var moves = {
+        "up": ["left", "right"],
+        "left": ["up", "down"],
+        "down": ["right", "left"],
+        "right": ["down", "up"]
+    }
+
+    //80% chance bot moves where you want. We do nothing if that happens.
+    if (move > .8 && move <= .9) {
+        direction = moves[direction][0];
+    else if (move > .9 && move <= 1) {
+        direction = moves[direction][1];
+    }
+}
+
+mapcoords = []
+
+$(function() {
+    //step one: let's draw a map, bitches. Underscores are open spaces, the o is the
+    //robot, and the Xs are impassible squares.
+    var map = "___o__\n"
+            + "_XX_X_\n"
+            + "______";
+    //get a reference to the canvas
+    var ctx = $('#themaze')[0].getContext("2d");
+
+    drawmap(ctx, map);
+});
+</script>
+<style>
+#canvas {
+    height: 600px;
+    width: 600px;
+}
+</style>
+</head><body>
+<div id="canvas">
+    <canvas id="themaze" width="600" height="600"></canvas>
+</div>
+</body>
+</html>
