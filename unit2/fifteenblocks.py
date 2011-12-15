@@ -217,10 +217,10 @@ def cache_manhattan():
 def test():
     tests = [
         FifteenBlocksDistanceHeuristic((-1,) + tuple(range(14,-1,-1))),
-        FifteenBlocksDistanceHeuristic((-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10)),
-        FifteenBlocksDistanceHeuristic((4,0,10,6, 8,1,11,3, 12,13,2,9, 7,-1,5,14)),
-        FifteenBlocksDistanceHeuristic((0,1,6,3, 8,4,7,9, 12,14,5,11, 13,-1,2,10)),
-        FifteenBlocksDistanceHeuristic((6,8,3,0, 12,5,4,9, -1,7,2,11, 13,14,1,10)),
+        #FifteenBlocksDistanceHeuristic((-1, 0, 1, 2, 3, 4, 5, 14, 9, 6, 11, 7, 12, 8, 13, 10)),
+        #FifteenBlocksDistanceHeuristic((4,0,10,6, 8,1,11,3, 12,13,2,9, 7,-1,5,14)),
+        #FifteenBlocksDistanceHeuristic((0,1,6,3, 8,4,7,9, 12,14,5,11, 13,-1,2,10)),
+        #FifteenBlocksDistanceHeuristic((6,8,3,0, 12,5,4,9, -1,7,2,11, 13,14,1,10)),
     ]
 
     for t in tests:
@@ -235,8 +235,6 @@ def test():
         print "%s nodes in solution" % pathlen
 
         assert pathlen < 81
-        break
-
 
 def main():
     #blocks = FifteenBlocksDistanceHeuristic(randomboard(2))
@@ -264,5 +262,30 @@ if __name__=="__main__":
     #pypy runs about 15% faster than regular python
     #import cProfile
     #cProfile.run('main()')
-    main()
-    #test()
+    #main()
+    test()
+
+"""OPEN = priority queue containing START
+CLOSED = empty set
+while lowest rank in OPEN is not the GOAL:
+  current = remove lowest rank item from OPEN
+  add current to CLOSED
+  for neighbors of current:
+    cost = g(current) + movementcost(current, neighbor)
+    if neighbor in OPEN and cost less than g(neighbor):
+      remove neighbor from OPEN, because new path is better
+    if neighbor in CLOSED and cost less than g(neighbor): **
+      remove neighbor from CLOSED
+    if neighbor not in OPEN and neighbor not in CLOSED:
+      set g(neighbor) to cost
+      add neighbor to OPEN
+      set priority queue rank to g(neighbor) + h(neighbor)
+      set neighbor's parent to current
+
+reconstruct reverse path from goal to start
+by following parent pointers
+
+from http://11011110.livejournal.com/135302.html, which refs amit patels' a* pages: http://theory.stanford.edu/~amitp/GameProgramming/ImplementationNotes.html
+
+So, do I correctly implement the last bits?
+"""
