@@ -1,6 +1,11 @@
 var botposition = [-1,-1];
 var botwidth = 30;
 var botheight = 30;
+var startx = 10;
+var starty = 10;
+var boxwidth = 60;
+var boxheight = 60;
+var particler = 3;
 
 function drawopenrect(ctx, x, y, width, height) {
     ctx.beginPath();
@@ -17,39 +22,67 @@ function drawfilledrect(ctx, x, y, width, height) {
 }
 
 function drawbot(ctx, x, y) {
-    if (botposition[0] > -1) {
-        ctx.clearRect(botposition[0], botposition[1], botwidth, botheight);
-    }
+    //for now, I'm just going to redraw the whole map
+    //if (botposition[0] > -1) {
+    //    ctx.clearRect(botposition[0], botposition[1], botwidth, botheight);
+    //}
+    //
+    console.log("drawing bot at", x, y);
 
-    var img = new Image();
-    img.src = 'robot.png';
-    img.onload = function() {
-        ctx.drawImage(img, x, y);
-    }
+    //TODO: don't reload this guy every time
+    var img = $("#robotimg")[0];
+    ctx.drawImage(img, x, y);
 
     botposition = [x,y];
 }
 
-function drawmap(ctx, map) {
-    var lines = map.split("\n");
-    var x = 10;
-    var y = 10;
-    var width = 60;
-    var height = 60;
+function gridcoords(maprow, mapcol) {
+  return [starty + boxheight * maprow, startx + boxwidth * mapcol];
+}
 
-    for (var i=0; i < lines.length; i++) {
+function drawparticle(ctx, particle) {
+    console.log("drawing particle at: ", particle);
+    var coords = gridcoords(particle[0], particle[1]);
+    var x = coords[1];
+    var y = coords[0];
+
+    //add between particler and boxwidth/height to x to get a random pos
+    x += particler + Math.random() * (boxwidth - 2*particler)
+    y += particler + Math.random() * (boxheight - 2*particler)
+
+    ctx.save();
+    ctx.fillStyle = "#00A308";
+    ctx.beginPath();
+    ctx.arc(x, y, particler, 0, Math.PI*2, true);
+    ctx.closePath;
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawmap(ctx, map, particles) {
+    console.log("clearing: ", ctx.canvas.height, ctx.canvas.width);
+    ctx.clearRect(0, 0, ctx.canvas.height, ctx.canvas.width);
+
+    var x = startx;
+    var y = starty;
+
+    for (var i=0; i < map.length; i++) {
         x = 10;
-        for (var j=0; j < lines[i].length; j++) {
-            if (lines[i][j] == "X") {
-                drawfilledrect(ctx, x, y, width, height);
+        for (var j=0; j < map[i].length; j++) {
+            if (map[i][j] == "X") {
+                drawfilledrect(ctx, x, y, boxwidth, boxheight);
             } else {
-                drawopenrect(ctx, x, y, width, height);
-                if (lines[i][j] == "o") {
-                    drawbot(ctx, x + (width/2) - (botwidth/2), y + (height/2) - (botheight/2));
+                drawopenrect(ctx, x, y, boxwidth, boxheight);
+                if (map[i][j] == "o") {
+                    drawbot(ctx, x + (boxwidth/2) - (botwidth/2), y + (boxheight/2) - (botheight/2));
                 }
             }
-            x += width;
+            x += boxwidth;
         }
-        y += height;
+        y += boxheight;
+    }
+
+    for (var i=0; i < particles.length; i++) {
+        drawparticle(ctx, particles[i]);
     }
 }

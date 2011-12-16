@@ -1,10 +1,26 @@
 <html><head><title>Soemthing</title>
 <!-- include before jQuery to make sure it's not depending on it -->
+<script>
+//dummy console.log if necessary
+if(typeof console === "undefined") {
+    console = { log: function() { } };
+}
+</script>
 <script src="sample.js"></script>
 <script src="drawmap.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
 <script>
-function movebot(direction) {
+function findbot(map) {
+    for (var i=0; i < map.length; i++) {
+        for (var j=0; j < map[0].length; j++) {
+            if (map[i][j] == "o") {
+                return [i,j];
+            }
+        }
+    }
+}
+
+function movebot(map, direction) {
     var move = Math.random();
     var moves = {
         "up": ["left", "right"],
@@ -13,26 +29,224 @@ function movebot(direction) {
         "right": ["down", "up"]
     }
 
-    //80% chance bot moves where you want. We do nothing if that happens.
+    var intended_direction = direction;
+
+    //80% chance bot moves where you want. Otherwise, you fail by 90 degrees
     if (move > .8 && move <= .9) {
         direction = moves[direction][0];
-    else if (move > .9 && move <= 1) {
+    } else if (move > .9 && move <= 1) {
         direction = moves[direction][1];
+    }
+
+    var cols   = map.length;
+    var rows   = map[0].length;
+    var botloc = findbot(map);
+    var botrow = botloc[0];
+    var botcol = botloc[1];
+
+    console.log("moving bot: " + direction);
+
+    if (direction == "up") {
+        if (botrow != 0 && map[botrow-1][botcol] == '_') {
+            map[botrow-1][botcol] = 'o';
+            map[botrow][botcol]   = '_';
+        }
+    }
+    else if (direction == "left") {
+        if (botcol != 0 && map[botrow][botcol-1] == '_') {
+            map[botrow][botcol-1] = 'o';
+            map[botrow][botcol]   = '_';
+        }
+    }
+    if (direction == "down") {
+        if (botrow != rows.length-1 && map[botrow+1][botcol] == '_') {
+            map[botrow+1][botcol] = 'o';
+            map[botrow][botcol]   = '_';
+        }
+    }
+    else if (direction == "right") {
+        if (botcol != cols.length-1 && map[botrow][botcol+1] == '_') {
+            map[botrow][botcol+1] = 'o';
+            map[botrow][botcol]   = '_';
+        }
+    }
+
+    //our bot can sense if there is a wall to the north, south, east or west
+    var measurement = sense(map);
+
+    //XXX: do we give particle filter the *intended* direction, or the actual one?
+    //     intended right? FIXME
+    particlefilter(map, particles, intended_direction, measurement);
+}
+
+function sense(map, botloc) {
+    var row = botloc[0];
+    var col = botloc[1];
+    var nrows = map.length;
+    var ncols = map[0].length;
+
+    //an array of 4 integers. 1 represents a wall, 0 represents no wall.
+    //ordered north, west, south, east.
+    var measurements = [];
+
+    var failn = Math.random();
+    var failw = Math.random();
+    var fails = Math.random();
+    var faile = Math.random();
+
+    //There is a 10% chance that each measurement returns a random value
+    if (failn < .1) {
+        measurements.push(Math.floor(failn*100) % 2);
+    } else {
+        measurements.push(botloc[row] == 0     || map[row-1][col] == 'X' ? 1 : 0)
+    }
+    if (failw < .1) {
+        measurements.push(Math.floor(failn*100) % 2);
+    } else {
+        measurements.push(botloc[col] == 0     || map[row][col-1] == 'X' ? 1 : 0)
+    }
+    if (fails < .1) {
+        measurements.push(Math.floor(failn*100) % 2);
+    } else {
+        measurements.push(botloc[row] == nrows || map[row+1][col] == 'X' ? 1 : 0)
+    }
+    if (faile < .1) {
+        measurements.push(Math.floor(failn*100) % 2);
+    } else {
+        measurements.push(botloc[col] == ncols || map[row][col+1] == 'X' ? 1 : 0)
+    }
+
+    return measurements
+}
+
+function moveparticle(map, particle, direction) {
+    var row = particle[0];
+    var col = particle[1];
+    
+    var moves = {
+        "up": ["left", "right"],
+        "left": ["up", "down"],
+        "down": ["right", "left"],
+        "right": ["down", "up"]
+    }
+
+    //80% chance bot moves where you want. Otherwise, you fail by 90 degrees
+    if (move > .8 && move <= .9) {
+        direction = moves[direction][0];
+    } else if (move > .9 && move <= 1) {
+        direction = moves[direction][1];
+    }
+
+    var cols   = map.length;
+    var rows   = map[0].length;
+
+    console.log("moving bot: " + direction);
+
+    if (direction == "up") {
+        if (row != 0 && map[row-1][col] == '_') {
+            return [row-1, col];
+        }
+        return [row, col];
+    }
+    else if (direction == "left") {
+        if (col != 0 && map[row][col-1] == '_') {
+            return [row, col-1];
+        }
+        return [row, col];
+    }
+    if (direction == "down") {
+        if (row != rows.length-1 && map[row+1][col] == '_') {
+            return [row+1, col];
+        }
+        return [row, col];
+    }
+    else if (direction == "right") {
+        if (col != cols.length-1 && map[row][col+1] == '_') {
+            return [row, col+1];
+        }
+        return [row, col];
+    }
+
+    throw "we should never get here"
+}
+
+function particlefilter(map, particles, control, measurement) {
+    //particles, weights
+    var newparticles = [[], []]
+    for (var i=0; i < particles[0].length; i++) {
+        var j = weighted_sample(particles[1], particles[0]);
+        var xp = moveparticle(map, particle, control);
+        var wp = newweight(xp);
     }
 }
 
-mapcoords = []
+//turn a map from a string into an array
+function arraymap(maps) {
+    var maplines = maps.split("\n");
+    var map = [];
 
-$(function() {
-    //step one: let's draw a map, bitches. Underscores are open spaces, the o is the
-    //robot, and the Xs are impassible squares.
-    var map = "___o__\n"
-            + "_XX_X_\n"
-            + "______";
+    for (var i=0; i < maplines.length; i++) {
+        map.push(maplines[i].split(""));
+    }
+
+    return map;
+}
+
+function makeparticles(map, n) {
+    var particles = [];
+    var weights = [];
+    var x = 0;
+    var y = 0;
+
+    for (var i=0; i < n; i++) {
+        row = Math.floor(Math.random() * map.length);
+        col = Math.floor(Math.random() * map[0].length);
+        while (map[row][col] != "_" && map[row][col] != 'o') {
+            row = Math.floor(Math.random() * map.length);
+            col = Math.floor(Math.random() * map[0].length);
+        }
+        particles.push([row, col]);
+    }
+
+    return [particles, weights];
+}
+
+function onKeyDown(evt) {
+    var newmap = [];
+
+    console.log(evt.keyCode);
+    if      (evt.keyCode == 37) { newmap = movebot(map, "left"); }
+    else if (evt.keyCode == 38) { newmap = movebot(map, "up"); }
+    else if (evt.keyCode == 39) { newmap = movebot(map, "right"); }
+    else if (evt.keyCode == 40) { newmap = movebot(map, "down"); }
+
+    if (newmap.length > 0) {
+        drawmap(ctx, newmap);
+        return false;
+    }
+}
+
+$(document).keydown(onKeyDown);
+
+//Underscores are open spaces, the o is the robot, and the Xs are impassible squares.
+var map = "___o__\n"
+        + "_XX_X_\n"
+        + "______";
+
+var ctx;
+
+var particles;
+
+//make sure to use window.load so we wait for image assets to load first
+$(window).load(function() {
     //get a reference to the canvas
-    var ctx = $('#themaze')[0].getContext("2d");
+    ctx = $('#themaze')[0].getContext("2d");
 
-    drawmap(ctx, map);
+    map = arraymap(map);
+
+    particles = makeparticles(map, 20);
+
+    drawmap(ctx, map, particles[0]);
 });
 </script>
 <style>
@@ -42,6 +256,7 @@ $(function() {
 }
 </style>
 </head><body>
+<img id="robotimg" src="robot.png" style="display:none">
 <div id="canvas">
     <canvas id="themaze" width="600" height="600"></canvas>
 </div>
