@@ -20,7 +20,7 @@ function findbot(map) {
     }
 }
 
-function movebot(map, direction) {
+function getmove(direction) {
     var move = Math.random();
     var moves = {
         "up": ["left", "right"],
@@ -29,14 +29,16 @@ function movebot(map, direction) {
         "right": ["down", "up"]
     }
 
-    var intended_direction = direction;
-
     //80% chance bot moves where you want. Otherwise, you fail by 90 degrees
-    if (move > .8 && move <= .9) {
-        direction = moves[direction][0];
-    } else if (move > .9 && move <= 1) {
-        direction = moves[direction][1];
+    if (move > .8) {
+        direction = moves[direction][move > .9 ? 0 : 1];
     }
+
+    return direction;
+}
+
+function movebot(map, direction) {
+    var move = getmove(direction)
 
     var cols   = map.length;
     var rows   = map[0].length;
@@ -46,25 +48,25 @@ function movebot(map, direction) {
 
     console.log("moving bot: " + direction);
 
-    if (direction == "up") {
+    if (move == "up") {
         if (botrow != 0 && map[botrow-1][botcol] == '_') {
             map[botrow-1][botcol] = 'o';
             map[botrow][botcol]   = '_';
         }
     }
-    else if (direction == "left") {
+    else if (move == "left") {
         if (botcol != 0 && map[botrow][botcol-1] == '_') {
             map[botrow][botcol-1] = 'o';
             map[botrow][botcol]   = '_';
         }
     }
-    if (direction == "down") {
+    if (move == "down") {
         if (botrow != rows.length-1 && map[botrow+1][botcol] == '_') {
             map[botrow+1][botcol] = 'o';
             map[botrow][botcol]   = '_';
         }
     }
-    else if (direction == "right") {
+    else if (move == "right") {
         if (botcol != cols.length-1 && map[botrow][botcol+1] == '_') {
             map[botrow][botcol+1] = 'o';
             map[botrow][botcol]   = '_';
@@ -74,7 +76,7 @@ function movebot(map, direction) {
     //our bot can sense if there is a wall to the north, south, east or west
     var measurement = sense(map, botloc);
 
-    particles = particlefilter(map, particles, intended_direction, measurement);
+    particles = particlefilter(map, particles, direction, measurement);
 
     return map;
 }
@@ -123,53 +125,37 @@ function sense(map, botloc) {
 function moveparticle(map, particle, direction) {
     var row = particle[0];
     var col = particle[1];
-    
-    var move = Math.random();
-    var moves = {
-        "up": ["left", "right"],
-        "left": ["up", "down"],
-        "down": ["right", "left"],
-        "right": ["down", "up"]
-    }
-
-    //80% chance particle moves where you want. Otherwise, you fail by 90 degrees
-    if (move > .8 && move <= .9) {
-        direction = moves[direction][0];
-    } else if (move > .9 && move <= 1) {
-        direction = moves[direction][1];
-    }
-
     var nrows = map.length;
     var ncols = map[0].length;
 
-    console.log("moving particle: " + direction);
+    var move = getmove(direction);
 
-    if (direction == "up") {
+    if (move == "up") {
         if (row != 0 && map[row-1][col] == '_') {
             return [row-1, col];
         }
         return [row, col];
     }
-    else if (direction == "left") {
+    else if (move == "left") {
         if (col != 0 && map[row][col-1] == '_') {
             return [row, col-1];
         }
         return [row, col];
     }
-    if (direction == "down") {
+    if (move == "down") {
         if (row < nrows-1 && map[row+1][col] == '_') {
             return [row+1, col];
         }
         return [row, col];
     }
-    else if (direction == "right") {
+    else if (move == "right") {
         if (col < ncols-1 && map[row][col+1] == '_') {
             return [row, col+1];
         }
         return [row, col];
     }
 
-    throw "we should never get here"
+    throw "we should never get here: <" + move + ">";
 }
 
 function find_walls(map, row, col) {

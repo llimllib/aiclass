@@ -22,13 +22,6 @@ function drawfilledrect(ctx, x, y, width, height) {
 }
 
 function drawbot(ctx, x, y) {
-    //for now, I'm just going to redraw the whole map
-    //if (botposition[0] > -1) {
-    //    ctx.clearRect(botposition[0], botposition[1], botwidth, botheight);
-    //}
-    //
-    console.log("drawing bot at", x, y);
-
     //TODO: don't reload this guy every time
     var img = $("#robotimg")[0];
     ctx.drawImage(img, x, y);
@@ -41,7 +34,6 @@ function gridcoords(maprow, mapcol) {
 }
 
 function drawparticle(ctx, particle) {
-    console.log("drawing particle at: ", particle);
     var coords = gridcoords(particle[0], particle[1]);
     var x = coords[1];
     var y = coords[0];
@@ -60,7 +52,6 @@ function drawparticle(ctx, particle) {
 }
 
 function drawmap(ctx, map, particles) {
-    console.log("clearing: ", ctx.canvas.height, ctx.canvas.width);
     ctx.clearRect(0, 0, ctx.canvas.height, ctx.canvas.width);
 
     var x = startx;
