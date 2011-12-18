@@ -5,6 +5,14 @@ function sum(list) {
 var epsilon = .00000001;
 
 function weighted_sample(weights, objects) {
+  if (weights.length == 0) {
+    throw "can't sample from an empty weights array";
+  }
+
+  if (weights.length != objects.length) {
+    throw "weights and objects have different dimensions";
+  }
+
   var totalweight = sum(weights);
 
   if (Math.abs(totalweight-1) > epsilon) {

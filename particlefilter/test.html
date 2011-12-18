@@ -72,18 +72,18 @@ function movebot(map, direction) {
     }
 
     //our bot can sense if there is a wall to the north, south, east or west
-    var measurement = sense(map);
+    var measurement = sense(map, botloc);
 
-    //XXX: do we give particle filter the *intended* direction, or the actual one?
-    //     intended right? FIXME
-    particlefilter(map, particles, intended_direction, measurement);
+    particles = particlefilter(map, particles, intended_direction, measurement);
+
+    return map;
 }
 
 function sense(map, botloc) {
     var row = botloc[0];
     var col = botloc[1];
-    var nrows = map.length;
-    var ncols = map[0].length;
+    var nrows = map.length - 1; //0-indexed
+    var ncols = map[0].length - 1; //0-indexed
 
     //an array of 4 integers. 1 represents a wall, 0 represents no wall.
     //ordered north, west, south, east.
@@ -94,26 +94,27 @@ function sense(map, botloc) {
     var fails = Math.random();
     var faile = Math.random();
 
-    //There is a 10% chance that each measurement returns a random value
+    //There is a 10% chance that each measurement returns a random value, so a 95%
+    //chance that the measurement returns the correct measurement
     if (failn < .1) {
         measurements.push(Math.floor(failn*100) % 2);
     } else {
-        measurements.push(botloc[row] == 0     || map[row-1][col] == 'X' ? 1 : 0)
+        measurements.push(row == 0     || map[row-1][col] == 'X' ? 1 : 0)
     }
     if (failw < .1) {
         measurements.push(Math.floor(failn*100) % 2);
     } else {
-        measurements.push(botloc[col] == 0     || map[row][col-1] == 'X' ? 1 : 0)
+        measurements.push(col == 0     || map[row][col-1] == 'X' ? 1 : 0)
     }
     if (fails < .1) {
         measurements.push(Math.floor(failn*100) % 2);
     } else {
-        measurements.push(botloc[row] == nrows || map[row+1][col] == 'X' ? 1 : 0)
+        measurements.push(row >= nrows || map[row+1][col] == 'X' ? 1 : 0)
     }
     if (faile < .1) {
         measurements.push(Math.floor(failn*100) % 2);
     } else {
-        measurements.push(botloc[col] == ncols || map[row][col+1] == 'X' ? 1 : 0)
+        measurements.push(col >= ncols || map[row][col+1] == 'X' ? 1 : 0)
     }
 
     return measurements
@@ -123,6 +124,7 @@ function moveparticle(map, particle, direction) {
     var row = particle[0];
     var col = particle[1];
     
+    var move = Math.random();
     var moves = {
         "up": ["left", "right"],
         "left": ["up", "down"],
@@ -130,17 +132,17 @@ function moveparticle(map, particle, direction) {
         "right": ["down", "up"]
     }
 
-    //80% chance bot moves where you want. Otherwise, you fail by 90 degrees
+    //80% chance particle moves where you want. Otherwise, you fail by 90 degrees
     if (move > .8 && move <= .9) {
         direction = moves[direction][0];
     } else if (move > .9 && move <= 1) {
         direction = moves[direction][1];
     }
 
-    var cols   = map.length;
-    var rows   = map[0].length;
+    var nrows = map.length;
+    var ncols = map[0].length;
 
-    console.log("moving bot: " + direction);
+    console.log("moving particle: " + direction);
 
     if (direction == "up") {
         if (row != 0 && map[row-1][col] == '_') {
@@ -155,13 +157,13 @@ function moveparticle(map, particle, direction) {
         return [row, col];
     }
     if (direction == "down") {
-        if (row != rows.length-1 && map[row+1][col] == '_') {
+        if (row < nrows-1 && map[row+1][col] == '_') {
             return [row+1, col];
         }
         return [row, col];
     }
     else if (direction == "right") {
-        if (col != cols.length-1 && map[row][col+1] == '_') {
+        if (col < ncols-1 && map[row][col+1] == '_') {
             return [row, col+1];
         }
         return [row, col];
@@ -170,14 +172,84 @@ function moveparticle(map, particle, direction) {
     throw "we should never get here"
 }
 
+function find_walls(map, row, col) {
+    var walls = [];
+    var nrows = map.length - 1; //0-indexed
+    var ncols = map[0].length - 1; //0-indexed
+
+    walls.push(row > 0     && map[row-1][col] != 'X' ? 0 : 1);
+    walls.push(col > 0     && map[row][col-1] != 'X' ? 0 : 1);
+    walls.push(row < nrows && map[row+1][col] != 'X' ? 0 : 1);
+    walls.push(col < ncols && map[row][col+1] != 'X' ? 0 : 1);
+
+    return walls;
+}
+
+//Given the particle, return the likelihood of the given measurement
+function newweight(map, particle, measurement) {
+    var row = particle[0];
+    var col = particle[1];
+
+    //P(wall measurement|wall) = .95
+    var p_wallm_wall = .95;
+    //P(wall measurement|no wall) = .05
+    var p_wallm_nowall = .05;
+
+    var probabilities = [];
+
+    var walls = find_walls(map, row, col);
+
+    //if we measured wall
+    if (measurement[0] == 1) {
+        //push P(wall measurement|wall) if it is a wall, its complement otherwise
+        probabilities.push(walls[0] == 1 ? p_wallm_wall : 1-p_wallm_wall);
+    } else {
+        //push P(wall measurement|no wall) if it is a wall, its complement otherwise
+        probabilities.push(walls[0] == 1 ? p_wallm_nowall : 1-p_wallm_nowall);
+    }
+    if (measurement[1] == 1) {
+        probabilities.push(walls[1] == 1 ? p_wallm_wall : 1-p_wallm_wall);
+    } else {
+        probabilities.push(walls[1] == 1 ? p_wallm_nowall : 1-p_wallm_nowall);
+    }
+    if (measurement[2] == 1) {
+        probabilities.push(walls[2] == 1 ? p_wallm_wall : 1-p_wallm_wall);
+    } else {
+        probabilities.push(walls[2] == 1 ? p_wallm_nowall : 1-p_wallm_nowall);
+    }
+    if (measurement[3] == 1) {
+        probabilities.push(walls[3] == 1 ? p_wallm_wall : 1-p_wallm_wall);
+    } else {
+        probabilities.push(walls[3] == 1 ? p_wallm_nowall : 1-p_wallm_nowall);
+    }
+
+    //return the product; the probabilities are all conditionally independent.
+    return probabilities.reduce(function(a,b) { return a*b });
+}
+
 function particlefilter(map, particles, control, measurement) {
     //particles, weights
     var newparticles = [[], []]
+    var eta = 0;
+
     for (var i=0; i < particles[0].length; i++) {
         var j = weighted_sample(particles[1], particles[0]);
-        var xp = moveparticle(map, particle, control);
-        var wp = newweight(xp);
+
+        var xp = moveparticle(map, j, control);
+        var wp = newweight(map, xp, measurement);
+
+        eta += wp;
+
+        newparticles[0].push(xp);
+        newparticles[1].push(wp);
     }
+
+    //normalize our weights
+    for (var i=0; i < newparticles[1].length; i++) {
+        newparticles[1][i] = newparticles[1][i] / eta;
+    }
+
+    return newparticles;
 }
 
 //turn a map from a string into an array
@@ -206,6 +278,7 @@ function makeparticles(map, n) {
             col = Math.floor(Math.random() * map[0].length);
         }
         particles.push([row, col]);
+        weights.push(1/n);
     }
 
     return [particles, weights];
@@ -219,9 +292,10 @@ function onKeyDown(evt) {
     else if (evt.keyCode == 38) { newmap = movebot(map, "up"); }
     else if (evt.keyCode == 39) { newmap = movebot(map, "right"); }
     else if (evt.keyCode == 40) { newmap = movebot(map, "down"); }
-
+    
+    //only draw the map if we've executed movebot
     if (newmap.length > 0) {
-        drawmap(ctx, newmap);
+        drawmap(ctx, newmap, particles[0]);
         return false;
     }
 }
