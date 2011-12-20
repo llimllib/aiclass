@@ -52,7 +52,6 @@ function drawparticle(ctx, particle) {
 }
 
 function drawmap(ctx, map, particles) {
-    console.log("clearing ", ctx.canvas.height, ctx.canvas.width);
     ctx.clearRect(0, 0, ctx.canvas.height, ctx.canvas.width);
 
     var x = startx;
