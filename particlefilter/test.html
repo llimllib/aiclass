@@ -9,292 +9,55 @@ if(typeof console === "undefined") {
 <script src="sample.js"></script>
 <script src="drawmap.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+<script src="particlefilter.js"></script>
+<script src="map_filter.js"></script>
 <script>
-function findbot(map) {
-    for (var i=0; i < map.length; i++) {
-        for (var j=0; j < map[0].length; j++) {
-            if (map[i][j] == "o") {
-                return [i,j];
-            }
-        }
-    }
-}
+//TODO: pass this to a particlefilter demo or something
+var map = "___o__X___\n"
+        + "_XX_X___X_\n"
+        + "______XXX_\n"
+        + "XXXXX_____";
 
-function getmove(direction) {
-    var move = Math.random();
-    var moves = {
-        "up": ["left", "right"],
-        "left": ["up", "down"],
-        "down": ["right", "left"],
-        "right": ["down", "up"]
-    }
-
-    //80% chance bot moves where you want. Otherwise, you fail by 90 degrees
-    if (move > .8) {
-        direction = moves[direction][move > .9 ? 0 : 1];
-    }
-
-    return direction;
-}
-
-function movebot(map, direction) {
-    var move = getmove(direction)
-
-    var botloc = findbot(map);
-    var row = botloc[0];
-    var col = botloc[1];
-
-    console.log("moving bot: " + move);
-
-    if (move == "up")    { botloc = movecoords(map, row, col, row-1, col); }
-    if (move == "left")  { botloc = movecoords(map, row, col, row, col-1); }
-    if (move == "down")  { botloc = movecoords(map, row, col, row+1, col); }
-    if (move == "right") { botloc = movecoords(map, row, col, row, col+1); }
-
-    if (botloc[0] != row || botloc[1] != col) {
-        map[row][col] = '_';
-        map[botloc[0]][botloc[1]] = 'o';
-    }
-
-    //our bot can sense if there is a wall to the north, south, east or west
-    var measurement = sense(map, botloc);
-
-    console.log("mesaurement: "+ measurement);
-
-    particles = particlefilter(map, particles, direction, measurement);
-
-    return map;
-}
-
-function sense(map, botloc) {
-    var row = botloc[0];
-    var col = botloc[1];
-    var nrows = map.length - 1; //0-indexed
-    var ncols = map[0].length - 1; //0-indexed
-
-    //an array of 4 integers. 1 represents a wall, 0 represents no wall.
-    //ordered north, west, south, east.
-    var measurements = [];
-
-    var failn = Math.random();
-    var failw = Math.random();
-    var fails = Math.random();
-    var faile = Math.random();
-
-    //There is a 10% chance that each measurement returns a random value, so a 95%
-    //chance that the measurement returns the correct measurement
-    if (failn < .1) {
-        measurements.push(Math.floor(failn*100) % 2);
-    } else {
-        measurements.push(row == 0     || map[row-1][col] == 'X' ? 1 : 0)
-    }
-    if (failw < .1) {
-        measurements.push(Math.floor(failn*100) % 2);
-    } else {
-        measurements.push(col == 0     || map[row][col-1] == 'X' ? 1 : 0)
-    }
-    if (fails < .1) {
-        measurements.push(Math.floor(failn*100) % 2);
-    } else {
-        measurements.push(row >= nrows || map[row+1][col] == 'X' ? 1 : 0)
-    }
-    if (faile < .1) {
-        measurements.push(Math.floor(failn*100) % 2);
-    } else {
-        measurements.push(col >= ncols || map[row][col+1] == 'X' ? 1 : 0)
-    }
-
-    return measurements
-}
-
-//try to move from [row, col] to [newrow, newcol]. If [newrow, newcol] is not a
-//valid square, return [row, col]
-function movecoords(map, row, col, newrow, newcol) {
-    var nrows = map.length - 1;    //0-indexed
-    var ncols = map[0].length - 1; //0-indexed
-
-    if (newrow < 0 || newrow > nrows || newcol < 0 || newcol > ncols
-      || map[newrow][newcol] == 'X') {
-        return [row, col];
-    }
-    return [newrow, newcol];
-}
-
-function moveparticle(map, particle, direction) {
-    var row = particle[0];
-    var col = particle[1];
-
-    var move = getmove(direction);
-
-    if (move == "up")    { return movecoords(map, row, col, row-1, col); }
-    if (move == "left")  { return movecoords(map, row, col, row, col-1); }
-    if (move == "down")  { return movecoords(map, row, col, row+1, col); }
-    if (move == "right") { return movecoords(map, row, col, row, col+1); }
-
-    throw "we should never get here: <" + move + ">";
-}
-
-function find_walls(map, row, col) {
-    var walls = [];
-    var nrows = map.length - 1; //0-indexed
-    var ncols = map[0].length - 1; //0-indexed
-
-    walls.push(row > 0     && map[row-1][col] != 'X' ? 0 : 1);
-    walls.push(col > 0     && map[row][col-1] != 'X' ? 0 : 1);
-    walls.push(row < nrows && map[row+1][col] != 'X' ? 0 : 1);
-    walls.push(col < ncols && map[row][col+1] != 'X' ? 0 : 1);
-
-    return walls;
-}
-
-//Given the particle, return the likelihood of the given measurement
-function newweight(map, particle, measurement) {
-    var row = particle[0];
-    var col = particle[1];
-
-    //P(wall measurement|wall) = .95
-    var p_wallm_wall = .95;
-    //P(wall measurement|no wall) = .05
-    var p_wallm_nowall = .05;
-
-    var probabilities = [];
-
-    var walls = find_walls(map, row, col);
-
-    //if we measured wall
-    if (measurement[0] == 1) {
-        //push P(wall measurement|wall) if it is a wall, its complement otherwise
-        probabilities.push(walls[0] == 1 ? p_wallm_wall : 1-p_wallm_wall);
-    } else {
-        //push P(wall measurement|no wall) if it is a wall, its complement otherwise
-        probabilities.push(walls[0] == 1 ? p_wallm_nowall : 1-p_wallm_nowall);
-    }
-    if (measurement[1] == 1) {
-        probabilities.push(walls[1] == 1 ? p_wallm_wall : 1-p_wallm_wall);
-    } else {
-        probabilities.push(walls[1] == 1 ? p_wallm_nowall : 1-p_wallm_nowall);
-    }
-    if (measurement[2] == 1) {
-        probabilities.push(walls[2] == 1 ? p_wallm_wall : 1-p_wallm_wall);
-    } else {
-        probabilities.push(walls[2] == 1 ? p_wallm_nowall : 1-p_wallm_nowall);
-    }
-    if (measurement[3] == 1) {
-        probabilities.push(walls[3] == 1 ? p_wallm_wall : 1-p_wallm_wall);
-    } else {
-        probabilities.push(walls[3] == 1 ? p_wallm_nowall : 1-p_wallm_nowall);
-    }
-
-    //return the product; the probabilities are all conditionally independent.
-    return probabilities.reduce(function(a,b) { return a*b });
-}
-
-function particlefilter(map, particles, control, measurement) {
-    //particles, weights
-    var newparticles = [[], []]
-    var eta = 0;
-
-    for (var i=0; i < particles[0].length; i++) {
-        var j = weighted_sample(particles[1], particles[0]);
-
-        var xp = moveparticle(map, j, control);
-        var wp = newweight(map, xp, measurement);
-
-        eta += wp;
-
-        newparticles[0].push(xp);
-        newparticles[1].push(wp);
-    }
-
-    //normalize our weights
-    for (var i=0; i < newparticles[1].length; i++) {
-        newparticles[1][i] = newparticles[1][i] / eta;
-    }
-
-    return newparticles;
-}
-
-//turn a map from a string into an array
-function arraymap(maps) {
-    var maplines = maps.split("\n");
-    var map = [];
-
-    for (var i=0; i < maplines.length; i++) {
-        map.push(maplines[i].split(""));
-    }
-
-    return map;
-}
-
-function makeparticles(map, n) {
-    var particles = [];
-    var weights = [];
-    var x = 0;
-    var y = 0;
-
-    for (var i=0; i < n; i++) {
-        row = Math.floor(Math.random() * map.length);
-        col = Math.floor(Math.random() * map[0].length);
-        while (map[row][col] != "_" && map[row][col] != 'o') {
-            row = Math.floor(Math.random() * map.length);
-            col = Math.floor(Math.random() * map[0].length);
-        }
-        particles.push([row, col]);
-        weights.push(1/n);
-    }
-
-    return [particles, weights];
-}
+var mapfilter;
 
 function onKeyDown(evt) {
     var newmap = [];
 
-    console.log(evt.keyCode);
-    if      (evt.keyCode == 37) { newmap = movebot(map, "left"); }
-    else if (evt.keyCode == 38) { newmap = movebot(map, "up"); }
-    else if (evt.keyCode == 39) { newmap = movebot(map, "right"); }
-    else if (evt.keyCode == 40) { newmap = movebot(map, "down"); }
+    if ([37,38,39,40].indexOf(evt.keyCode) >= 0) {
+        if      (evt.keyCode == 37) { mapfilter.movebot("left"); }
+        else if (evt.keyCode == 38) { mapfilter.movebot("up"); }
+        else if (evt.keyCode == 39) { mapfilter.movebot("right"); }
+        else if (evt.keyCode == 40) { mapfilter.movebot("down"); }
     
-    //only draw the map if we've executed movebot
-    if (newmap.length > 0) {
-        drawmap(ctx, newmap, particles[0]);
-        return false;
+        drawmap(ctx, mapfilter.map, mapfilter.particles[0]);
+
+        evt.stopPropagation();
+        evt.preventDefault();
     }
 }
 
 $(document).keydown(onKeyDown);
-
-//Underscores are open spaces, the o is the robot, and the Xs are impassible squares.
-var map = "___o__\n"
-        + "_XX_X_\n"
-        + "______";
-
-var ctx;
-
-var particles;
 
 //make sure to use window.load so we wait for image assets to load first
 $(window).load(function() {
     //get a reference to the canvas
     ctx = $('#themaze')[0].getContext("2d");
 
-    map = arraymap(map);
+    mapfilter = new MapFilter(map, 200);
 
-    particles = makeparticles(map, 20);
-
-    drawmap(ctx, map, particles[0]);
+    drawmap(ctx, mapfilter.map, mapfilter.particles[0]);
 });
 </script>
 <style>
 #canvas {
     height: 600px;
-    width: 600px;
+    width: 900px;
 }
 </style>
 </head><body>
 <img id="robotimg" src="robot.png" style="display:none">
 <div id="canvas">
-    <canvas id="themaze" width="600" height="600"></canvas>
+    <canvas id="themaze" width="900" height="600"></canvas>
 </div>
 </body>
 </html>
