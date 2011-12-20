@@ -141,7 +141,7 @@ MapFilter.prototype.iswall = function(row, col) {
     }
 
     //otherwise, return 1 if [row, col] is a wall
-    if (row < 0 || row > this.nrows-1 || 
+    if (row < 0 || row > this.nrows-1 ||
         col < 0 || col > this.ncols-1 ||
         this.map[row][col] == 'X') {
         return 1;

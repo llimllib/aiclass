@@ -9,14 +9,14 @@ var particler = 3;
 
 function drawopenrect(ctx, x, y, width, height) {
     ctx.beginPath();
-    ctx.rect(x, y, width, height); 
+    ctx.rect(x, y, width, height);
     ctx.closePath();
     ctx.stroke();
 }
 
 function drawfilledrect(ctx, x, y, width, height) {
     ctx.beginPath();
-    ctx.rect(x, y, width, height); 
+    ctx.rect(x, y, width, height);
     ctx.closePath();
     ctx.fill();
 }
