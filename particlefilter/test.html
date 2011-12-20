@@ -28,7 +28,7 @@ function onKeyDown(evt) {
         else if (evt.keyCode == 38) { mapfilter.movebot("up"); }
         else if (evt.keyCode == 39) { mapfilter.movebot("right"); }
         else if (evt.keyCode == 40) { mapfilter.movebot("down"); }
-    
+
         drawmap(ctx, mapfilter.map, mapfilter.particles[0]);
 
         evt.stopPropagation();
