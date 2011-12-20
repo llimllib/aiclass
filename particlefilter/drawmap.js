@@ -1,8 +1,8 @@
 var botposition = [-1,-1];
 var botwidth = 30;
 var botheight = 30;
-var startx = 10;
-var starty = 10;
+var startx = 0;
+var starty = 0;
 var boxwidth = 60;
 var boxheight = 60;
 var particler = 3;
@@ -52,13 +52,14 @@ function drawparticle(ctx, particle) {
 }
 
 function drawmap(ctx, map, particles) {
+    console.log("clearing ", ctx.canvas.height, ctx.canvas.width);
     ctx.clearRect(0, 0, ctx.canvas.height, ctx.canvas.width);
 
     var x = startx;
     var y = starty;
 
     for (var i=0; i < map.length; i++) {
-        x = 10;
+        x = startx;
         for (var j=0; j < map[i].length; j++) {
             if (map[i][j] == "X") {
                 drawfilledrect(ctx, x, y, boxwidth, boxheight);
