@@ -11,7 +11,11 @@ function makeClass(){
     };
 }
 
+MapFilter = (function() {
+
 MapFilter = makeClass();
+
+var that;
 
 MapFilter.prototype.init = function(map, nparticles) {
     this.map = this.arraymap(map);
@@ -21,7 +25,9 @@ MapFilter.prototype.init = function(map, nparticles) {
 
     //depends on nrows and ncols
     this.particles = this.makeparticles(nparticles);
-}
+
+    that = this;
+};
 
 //turn a map from a string into an array
 MapFilter.prototype.arraymap = function(maps) {
@@ -33,7 +39,7 @@ MapFilter.prototype.arraymap = function(maps) {
     }
 
     return map;
-}
+};
 
 MapFilter.prototype.makeparticles = function(n) {
     var particles = [];
@@ -53,7 +59,7 @@ MapFilter.prototype.makeparticles = function(n) {
     }
 
     return [particles, weights];
-}
+};
 
 MapFilter.prototype.findbot = function() {
     for (var i=0; i < this.map.length; i++) {
@@ -63,7 +69,7 @@ MapFilter.prototype.findbot = function() {
             }
         }
     }
-}
+};
 
 MapFilter.prototype.getmove = function(direction) {
     var move = Math.random();
@@ -72,7 +78,7 @@ MapFilter.prototype.getmove = function(direction) {
         "left": ["up", "down"],
         "down": ["right", "left"],
         "right": ["down", "up"]
-    }
+    };
 
     //80% chance bot moves where you want. Otherwise, you fail by 90 degrees
     if (move > .8) {
@@ -80,10 +86,10 @@ MapFilter.prototype.getmove = function(direction) {
     }
 
     return direction;
-}
+};
 
 MapFilter.prototype.movebot = function(direction) {
-    var move = this.getmove(direction)
+    var move = this.getmove(direction);
 
     var botloc = this.findbot(this.map);
     var row = botloc[0];
@@ -106,29 +112,12 @@ MapFilter.prototype.movebot = function(direction) {
 
     console.log("mesaurement: "+ measurement);
 
-    var that = this;
-
-    //Has to be in here to reference "this". I mean "that". Ugh... Javascript.
-    var moveparticle = function(particle, direction) {
-        var row = particle[0];
-        var col = particle[1];
-
-        var move = that.getmove(direction);
-
-        if (move == "up")    { return that.movecoords(row, col, row-1, col); }
-        if (move == "left")  { return that.movecoords(row, col, row, col-1); }
-        if (move == "down")  { return that.movecoords(row, col, row+1, col); }
-        if (move == "right") { return that.movecoords(row, col, row, col+1); }
-
-        throw "we should never get here: <" + move + ">";
-    }
-
     this.particles = ParticleFilter(this.particles,
                                     moveparticle,
                                     direction,
                                     this.newweight,
                                     measurement);
-}
+};
 
 MapFilter.prototype.sense = function(botloc) {
     var row = botloc[0];
@@ -140,36 +129,36 @@ MapFilter.prototype.sense = function(botloc) {
         this.iswall(row-1, col),
         this.iswall(row, col-1),
         this.iswall(row+1, col),
-        this.iswall(row, col+1),
+        this.iswall(row, col+1)
     ];
-}
+};
 
 MapFilter.prototype.iswall = function(row, col) {
     //10% of the time, return a random measurement
     var r = Math.random();
     if (r < .1) {
-        return (r*10)%2;
+        return Math.floor(r*10) % 2;
     }
 
     //otherwise, return 1 if [row, col] is a wall
-    if (row < 0 || row > this.nrows-1 ||
+    if (row < 0 || row > this.nrows-1 || 
         col < 0 || col > this.ncols-1 ||
-        map[row][col] == 'X') {
+        this.map[row][col] == 'X') {
         return 1;
     }
     return 0;
-}
+};
 
 //try to move from [row, col] to [newrow, newcol]. If [newrow, newcol] is not a
 //valid square, return [row, col]
 MapFilter.prototype.movecoords = function(row, col, newrow, newcol) {
     if (newrow < 0 || newrow > this.nrows-1 ||
         newcol < 0 || newcol > this.ncols-1 ||
-        map[newrow][newcol] == 'X') {
+        this.map[newrow][newcol] == 'X') {
         return [row, col];
     }
     return [newrow, newcol];
-}
+};
 
 
 MapFilter.prototype.find_walls = function(row, col) {
@@ -181,7 +170,23 @@ MapFilter.prototype.find_walls = function(row, col) {
     walls.push(col < this.ncols-1 && this.map[row][col+1] != 'X' ? 0 : 1);
 
     return walls;
-}
+};
+
+//Has to be in here to reference "this". I mean "that". Ugh... Javascript.
+var moveparticle = function(particle, direction) {
+    var row = particle[0];
+    var col = particle[1];
+
+    var move = that.getmove(direction);
+
+    if (move == "up")    { return that.movecoords(row, col, row-1, col); }
+    if (move == "left")  { return that.movecoords(row, col, row, col-1); }
+    if (move == "down")  { return that.movecoords(row, col, row+1, col); }
+    if (move == "right") { return that.movecoords(row, col, row, col+1); }
+
+    throw "we should never get here: <" + move + ">";
+};
+
 
 //Given the particle, return the likelihood of the given measurement
 MapFilter.prototype.newweight = function(particle, measurement) {
@@ -195,7 +200,7 @@ MapFilter.prototype.newweight = function(particle, measurement) {
 
     var probabilities = [];
 
-    var walls = this.find_walls(row, col);
+    var walls = that.find_walls(row, col);
 
     for (var i=0; i < measurement.length; i++) {
         //if we measured wall
@@ -209,6 +214,9 @@ MapFilter.prototype.newweight = function(particle, measurement) {
     }
 
     //return the product; the probabilities are all conditionally independent.
-    return probabilities.reduce(function(a,b) { return a*b });
-}
+    return probabilities.reduce(function(a,b) { return a*b; });
+};
 
+return MapFilter;
+
+})();
