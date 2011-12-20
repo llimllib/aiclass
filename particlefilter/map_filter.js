@@ -137,7 +137,7 @@ MapFilter.prototype.iswall = function(row, col) {
     //10% of the time, return a random measurement
     var r = Math.random();
     if (r < .1) {
-        return Math.floor(r*10) % 2;
+        return Math.floor(r*100) % 2;
     }
 
     //otherwise, return 1 if [row, col] is a wall
