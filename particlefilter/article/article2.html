@@ -6,9 +6,9 @@ if(typeof console === "undefined") {
     console = { log: function() { } };
 }
 </script>
-<script src="drawmap.js"></script>
-<script src="jquery-1.7.js"></script>
-<script src="map_filter.js"></script>
+<script src="../js/drawmap.js"></script>
+<script src="../js/jquery-1.7.js"></script>
+<script src="../js/map_filter.js"></script>
 <script>
 var map = "______X___\n"
         + "_XX_X___X_\n"
@@ -34,7 +34,7 @@ $(window).load(function() {
 </style>
 </head><body>
 <p>Imagine that we have a little robot, whom we'll call "Alpha". He looks like 
-this: <img id="robotimg" src="robot.png">.
+this: <img id="robotimg" src="../images/robot.png">.
 
 <p>Alpha lives in a gridded world, and he has a good internal model of the map, 
 which might look like this:
