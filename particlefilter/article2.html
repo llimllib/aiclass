@@ -1,0 +1,54 @@
+<html><head><title>Particle Filters</title>
+<!-- include before jQuery to make sure it's not depending on it -->
+<script>
+//dummy console.log if necessary
+if(typeof console === "undefined") {
+    console = { log: function() { } };
+}
+</script>
+<script src="drawmap.js"></script>
+<script src="jquery-1.7.js"></script>
+<script src="map_filter.js"></script>
+<script>
+var map = "______X___\n"
+        + "_XX_X___X_\n"
+        + "______XXX_\n"
+        + "XXXXX_____";
+
+$(window).load(function() {
+    //get a reference to the canvas
+    ctx = $('#themaze')[0].getContext("2d");
+
+    mapfilter = new MapFilter(map, 200);
+
+    drawmap(ctx, mapfilter.map, [[],[]]);
+});
+</script>
+<style>
+#canvas {
+    margin-left: 10px;
+    margin-top: 10px;
+    height: 300px;
+    width: 900px;
+}
+</style>
+</head><body>
+<p>Imagine that we have a little robot, whom we'll call "Alpha". He looks like 
+this: <img id="robotimg" src="robot.png">.
+
+<p>Alpha lives in a gridded world, and he has a good internal model of the map, 
+which might look like this:
+
+<div id="canvas">
+    <canvas id="themaze" width="900" height="300"></canvas>
+</div>
+
+<p>He can travel into any of the blank spots on the grid, but never into any of 
+the filled squares, or off the map.
+
+<!-- TODO: talk about map coordinates here? -->
+
+<p><a href="article3.html">Next ---></a>
+
+</body>
+</html>
