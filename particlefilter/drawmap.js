@@ -52,7 +52,7 @@ function drawparticle(ctx, particle) {
 }
 
 function drawmap(ctx, map, particles) {
-    ctx.clearRect(0, 0, ctx.canvas.height, ctx.canvas.width);
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     var x = startx;
     var y = starty;
