@@ -1,0 +1,80 @@
+<html><head><title>Particle Filters</title>
+<!-- include before jQuery to make sure it's not depending on it -->
+<script>
+//dummy console.log if necessary
+if(typeof console === "undefined") {
+    console = { log: function() { } };
+}
+</script>
+<script src="sample.js"></script>
+<script src="drawmap.js"></script>
+<script src="jquery-1.7.js"></script>
+<script src="particlefilter.js"></script>
+<script src="map_filter.js"></script>
+<script>
+var map = "___o__X___\n"
+        + "_XX_X___X_\n"
+        + "______XXX_\n"
+        + "XXXXX_____";
+
+var mapfilter;
+
+//TODO: this code will break users' use of the up and down keys to navigate. FIXME
+function onKeyDown(evt) {
+    var newmap = [];
+
+    if ([37,38,39,40].indexOf(evt.keyCode) >= 0) {
+        if      (evt.keyCode == 37) { mapfilter.movebot("left"); }
+        else if (evt.keyCode == 38) { mapfilter.movebot("up"); }
+        else if (evt.keyCode == 39) { mapfilter.movebot("right"); }
+        else if (evt.keyCode == 40) { mapfilter.movebot("down"); }
+
+        drawmap(ctx, mapfilter.map, mapfilter.particles[0]);
+
+        evt.stopPropagation();
+        evt.preventDefault();
+    }
+}
+
+$(document).keydown(onKeyDown);
+
+//make sure to use window.load so we wait for image assets to load first
+$(window).load(function() {
+    //get a reference to the canvas
+    ctx = $('#themaze')[0].getContext("2d");
+
+    mapfilter = new MapFilter(map, 200);
+
+    drawmap(ctx, mapfilter.map, mapfilter.particles[0]);
+});
+</script>
+<style>
+#canvas {
+    margin-left: 10px;
+    margin-top: 10px;
+    height: 300px;
+    width: 900px;
+}
+</style>
+</head><body>
+<img id="robotimg" src="robot.png" style="display:none">
+
+<p>When I was taking the <a href="XXX">Stanford AI class</a>, one of the few 
+topics I thought was poorly covered was that of particle filters. They say that 
+the best way to learn something is to teach it, so this article is my attempt 
+at understanding what particle filters are, and how they work. It concludes 
+with a demo that looks like this:
+
+<div id="canvas">
+    <canvas id="themaze" width="900" height="300"></canvas>
+</div>
+
+<p>(Press the arrow keys to move the robot; the particles will show you where 
+he thinks he is located. Note that sometimes the arrow keys will not move the 
+robot where you intend; this is part of the problem that we're using particle 
+filters to solve).
+
+<p><a href="article2.html">Next ---></a>
+
+</body>
+</html>
