@@ -36,7 +36,14 @@ MapFilter.prototype.init = function(map, nparticles, p_random_measurement) {
     //and the actual state
     this.actual_measurement = this.omniscent_sense(botloc);
 
+    //now run the particle filter given the initial measurement we've made
     that = this;
+    this.particles = ParticleFilter(this.particles,
+                                    moveparticle,
+                                    "none",
+                                    this.newweight,
+                                    this.last_measurement);
+
 };
 
 //turn a map from a string into an array
@@ -82,6 +89,10 @@ MapFilter.prototype.findbot = function() {
 };
 
 MapFilter.prototype.getmove = function(direction) {
+    //this is a special move, only called so that we can update the particle
+    //filter at the initial sense of the robot
+    if (direction === "none") { return "none"; }
+
     var move = Math.random();
     var moves = {
         "up": ["left", "right"],
@@ -222,6 +233,7 @@ var moveparticle = function(particle, direction) {
     if (move == "left")  { return that.movecoords(row, col, row, col-1); }
     if (move == "down")  { return that.movecoords(row, col, row+1, col); }
     if (move == "right") { return that.movecoords(row, col, row, col+1); }
+    if (move == "none")  { return [row, col]; }
 
     throw "we should never get here: <" + move + ">";
 };
