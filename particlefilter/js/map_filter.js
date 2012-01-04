@@ -1,6 +1,6 @@
 /* depends on particlefilter.js being loaded first */
 
-// makeClass - By John Resig (MIT Licensed)
+// modified from makeClass - By John Resig (MIT Licensed)
 function makeClass(){
     return function(args){
         if ( this instanceof arguments.callee ) {
@@ -17,7 +17,7 @@ MapFilter = makeClass();
 
 var that;
 
-MapFilter.prototype.init = function(map, nparticles) {
+MapFilter.prototype.init = function(map, nparticles, p_random_measurement) {
     this.map = this.arraymap(map);
 
     this.nrows = this.map.length;
@@ -25,6 +25,16 @@ MapFilter.prototype.init = function(map, nparticles) {
 
     //depends on nrows and ncols
     this.particles = this.makeparticles(nparticles);
+
+    //a float 0 < n < 1 representing the probability of returning a random measurement
+    this.p_random_measurement = p_random_measurement || .1;
+
+    //save the most recent measurement
+    var botloc = this.findbot(this.map);
+    this.last_measurement = this.sense(botloc);
+    
+    //and the actual state
+    this.actual_measurement = this.omniscent_sense(botloc);
 
     that = this;
 };
@@ -110,6 +120,10 @@ MapFilter.prototype.movebot = function(direction) {
     //our bot can sense if there is a wall to the north, south, east or west
     var measurement = this.sense(botloc);
 
+    //save the bot + correct measurement so we can display it from the UI
+    this.last_measurement = measurement;
+    this.actual_measurement = this.omniscent_sense(botloc);
+
     console.log("mesaurement: "+ measurement);
 
     this.particles = ParticleFilter(this.particles,
@@ -118,6 +132,30 @@ MapFilter.prototype.movebot = function(direction) {
                                     this.newweight,
                                     measurement);
 };
+
+MapFilter.prototype.omniscent_sense = function(botloc) {
+    var row = botloc[0];
+    var col = botloc[1];
+
+    //an array of 4 integers. 1 represents a wall, 0 represents no wall.
+    //ordered north, west, south, east.
+    return [
+        this.omniscent_iswall(row-1, col),
+        this.omniscent_iswall(row, col-1),
+        this.omniscent_iswall(row+1, col),
+        this.omniscent_iswall(row, col+1)
+    ];
+};
+
+MapFilter.prototype.omniscent_iswall = function(row, col) {
+    //otherwise, return 1 if [row, col] is a wall
+    if (row < 0 || row > this.nrows-1 ||
+        col < 0 || col > this.ncols-1 ||
+        this.map[row][col] == 'X') {
+        return 1;
+    }
+    return 0;
+}
 
 MapFilter.prototype.sense = function(botloc) {
     var row = botloc[0];
@@ -134,9 +172,10 @@ MapFilter.prototype.sense = function(botloc) {
 };
 
 MapFilter.prototype.iswall = function(row, col) {
-    //10% of the time, return a random measurement
     var r = Math.random();
-    if (r < .1) {
+ 
+    //p_random_measurement% of the time, return a random measurement
+    if (r < this.p_random_measurement) {
         return Math.floor(r*100) % 2;
     }
 
