@@ -75,23 +75,24 @@ $(window).load(function() {
 </head><body>
 <img id="robotimg" src="../images/robot.png" style="display:none">
 
-<p>The problem is, Alpha doesn't know which square he's in. In order to find 
-himself, he has two tools: he can move, and he can sense whether there are 
+<p>The problem is, Alpha doesn't know which square he's in. In order to find
+himself, he has two tools: he can move, and he can sense whether there are
 walls around him or not.
 
-<p>Unfortunately for him, he can neither move nor sense the walls reliably. 80% 
-of the time he can move where he wants to, but 20% of the time he will move 90 
-degrees from where he wants to; if the grid spot in that direction is invalid, 
+<p>Unfortunately for him, he can neither move nor sense the walls reliably. 80%
+of the time he can move where he wants to, but 20% of the time he will move 90
+degrees from where he wants to; if the grid spot in that direction is invalid,
 he will fail to move at all.
 
-<p>His wall sensors work similarly; 95% of the time they return the correct 
-mesaurement in any given direction, but the other 5% they fail. Since he can 
-measure walls in the north, east, south, and west directions, he will only get 
-a completely correct measurement of his current situation about 81% of the 
+<p>His wall sensors work similarly; 75% of the time they return the correct
+mesaurement in any given direction, but the other 25% they fail. Since he can
+measure walls in the north, east, south, and west directions, he will only get
+a completely correct measurement of his current situation about 32% of the
 time.
 
-<p>Play with moving him around a bit, and you'll see how he often fails to move 
-and how his sensors may be wrong (indicated by a red measurement):
+<p>Use the arrow keys to play with moving him around a bit, and you'll see how
+he often fails to move and how his sensors are often wrong (indicated by a red
+measurement):
 
 <div id="demo">
     <div style="float:right">measurements: 
