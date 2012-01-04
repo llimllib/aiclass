@@ -1,6 +1,79 @@
 <html><head><title>Particle Filters</title>
+<!-- include before jQuery to make sure it's not depending on it -->
+<script>
+//dummy console.log if necessary
+if(typeof console === "undefined") {
+    console = { log: function() { } };
+}
+</script>
+<script src="../js/sample.js"></script>
+<script src="../js/drawmap.js"></script>
+<script src="../js/jquery-1.7.js"></script>
+<script src="../js/particlefilter.js"></script>
+<script src="../js/map_filter.js"></script>
+<script>
+var map = "___o__X___\n"
+        + "_XX_X___X_\n"
+        + "______XXX_\n"
+        + "XXXXX_____";
+
+var mapfilter;
+
+//given the bot's measurement and the omniscent one, display the difference
+function show_measurement(bot_measure, god_measure) {
+    var htmls = [];
+    for (var i=0; i < 4; i++) {
+        var m = bot_measure[i] == 0 ? "no wall" : "wall";
+        if (bot_measure[i] == god_measure[i]) {
+            htmls.push(m);
+        } else {
+            htmls.push('<span style="color: red">' + m + '</span>');
+        }
+    }
+
+    $("#N").html(htmls[0]);
+    $("#E").html(htmls[1]);
+    $("#S").html(htmls[2]);
+    $("#W").html(htmls[3]);
+}
+
+//TODO: this code will break users' use of the up and down keys to navigate. FIXME
+function onKeyDown(evt) {
+    var newmap = [];
+
+    if ([37,38,39,40].indexOf(evt.keyCode) >= 0) {
+        if      (evt.keyCode == 37) { mapfilter.movebot("left"); }
+        else if (evt.keyCode == 38) { mapfilter.movebot("up"); }
+        else if (evt.keyCode == 39) { mapfilter.movebot("right"); }
+        else if (evt.keyCode == 40) { mapfilter.movebot("down"); }
+
+        drawmap(ctx, mapfilter.map, mapfilter.particles[0]);
+
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        show_measurement(mapfilter.last_measurement, mapfilter.actual_measurement);
+    }
+}
+
+
+$(document).keydown(onKeyDown);
+
+//make sure to use window.load so we wait for image assets to load first
+$(window).load(function() {
+    //get a reference to the canvas
+    ctx = $('#themaze')[0].getContext("2d");
+
+    mapfilter = new MapFilter(map, 0, .5);
+
+    drawmap(ctx, mapfilter.map, mapfilter.particles[0]);
+
+    show_measurement(mapfilter.last_measurement, mapfilter.actual_measurement);
+});
+</script>
 <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen"/>
 </head><body>
+<img id="robotimg" src="../images/robot.png" style="display:none">
 
 <p>The problem is, Alpha doesn't know which square he's in. In order to find 
 himself, he has two tools: he can move, and he can sense whether there are 
@@ -18,9 +91,22 @@ a completely correct measurement of his current situation about 81% of the
 time.
 
 <p>Play with moving him around a bit, and you'll see how he often fails to move 
-and how his sensors may be wrong:
+and how his sensors may be wrong (indicated by a red measurement):
 
 <!-- XXX: new demo here :) -->
+<div id="demo">
+    <div style="float:right">measurements: 
+        <table>
+            <tr><td>N</td><td id="N"></td></tr>
+            <tr><td>E</td><td id="E"></td></tr>
+            <tr><td>S</td><td id="S"></td></tr>
+            <tr><td>W</td><td id="W"></td></tr>
+        </table>
+    </div>
+    <div id="canvas">
+        <canvas id="themaze" width="900" height="250"></canvas>
+    </div>
+</div>
 
 <p><a href="article4.html">Next ---></a>
 
