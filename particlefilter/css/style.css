@@ -2,5 +2,9 @@
     margin-left: 10px;
     margin-top: 10px;
     height: 300px;
-    width: 900px;
+    width: 600px;
+}
+
+#demo {
+    width: 760px;
 }
