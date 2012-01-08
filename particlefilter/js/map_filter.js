@@ -222,7 +222,6 @@ MapFilter.prototype.find_walls = function(row, col) {
     return walls;
 };
 
-//Has to be in here to reference "this". I mean "that". Ugh... Javascript.
 var moveparticle = function(particle, direction) {
     var row = particle[0];
     var col = particle[1];
