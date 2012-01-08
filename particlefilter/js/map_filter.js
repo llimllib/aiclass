@@ -29,15 +29,24 @@ MapFilter.prototype.init = function(map, nparticles, p_random_measurement) {
     //a float 0 < n < 1 representing the probability of returning a random measurement
     this.p_random_measurement = p_random_measurement || .1;
 
+
+    //now run the particle filter given the initial measurement we've made
+    that = this;
+
+    try {
+        var botloc = this.findbot(this.map);
+    } catch (err) {
+        //there's no bot in the maze, just return the mapfilter without sensing
+        //or updating the particles
+        return;
+    }
+
     //save the most recent measurement
-    var botloc = this.findbot(this.map);
     this.last_measurement = this.sense(botloc);
     
     //and the actual state
     this.actual_measurement = this.omniscent_sense(botloc);
 
-    //now run the particle filter given the initial measurement we've made
-    that = this;
     this.particles = ParticleFilter(this.particles,
                                     moveparticle,
                                     "none",
@@ -85,6 +94,8 @@ MapFilter.prototype.findbot = function() {
             }
         }
     }
+
+    throw "no bot found";
 };
 
 MapFilter.prototype.getmove = function(direction) {
