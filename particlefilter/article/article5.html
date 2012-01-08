@@ -1,0 +1,72 @@
+<html><head><title>Particle Filters</title>
+<!-- include before jQuery to make sure it's not depending on it -->
+<script>
+//dummy console.log if necessary
+if(typeof console === "undefined") {
+    console = { log: function() { } };
+}
+</script>
+<script src="../js/sample.js"></script>
+<script src="../js/drawmap.js"></script>
+<script src="../js/jquery-1.7.js"></script>
+<script src="../js/particlefilter.js"></script>
+<script src="../js/map_filter.js"></script>
+<script>
+var map = "___o__X___\n"
+        + "_XX_X___X_\n"
+        + "______XXX_\n"
+        + "XXXXX_____";
+
+var mapfilter;
+
+//TODO: this code will break users' use of the up and down keys to navigate. FIXME
+function onKeyDown(evt) {
+    var newmap = [];
+
+    if ([37,38,39,40].indexOf(evt.keyCode) >= 0) {
+        if      (evt.keyCode == 37) { mapfilter.movebot("left"); }
+        else if (evt.keyCode == 38) { mapfilter.movebot("up"); }
+        else if (evt.keyCode == 39) { mapfilter.movebot("right"); }
+        else if (evt.keyCode == 40) { mapfilter.movebot("down"); }
+
+        drawmap(ctx, mapfilter.map, mapfilter.particles[0]);
+
+        evt.stopPropagation();
+        evt.preventDefault();
+    }
+}
+
+$(document).keydown(onKeyDown);
+
+//make sure to use window.load so we wait for image assets to load first
+$(window).load(function() {
+    //get a reference to the canvas
+    ctx = $('#themaze')[0].getContext("2d");
+
+    mapfilter = new MapFilter(map, 200);
+
+    drawmap(ctx, mapfilter.map, mapfilter.particles[0]);
+});
+</script>
+<link href="../css/style.css" type="text/css" rel="stylesheet" media="screen"/>
+</head><body>
+<img id="robotimg" src="../images/robot.png" style="display:none">
+
+<p>When we implement the algorithm from the previous page, we can see our 
+particle filter help Alpha locate himself in a world where he knows the map but 
+cannot entirely trust his own movement or his sensors.
+
+<div id="canvas">
+    <canvas id="themaze" width="900" height="300"></canvas>
+</div>
+
+<p>In this demo there are 200 particles on the map with Alpha. We can see that 
+they converge quickly to his location, and although you can sometimes get them 
+off Alpha, they quickly return to him.
+
+<p>You can check out all the source code to the bot <a href="XXX TODO">at 
+github</a>.
+
+<p>I hope this brief demonstration of a particle filter has been useful to you.  
+Please feel free to <a href="mailto:bill.mill@gmail.com">email me</a> your 
+comments, criticisms, or flames.
