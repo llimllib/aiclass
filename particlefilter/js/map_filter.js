@@ -43,7 +43,6 @@ MapFilter.prototype.init = function(map, nparticles, p_random_measurement) {
                                     "none",
                                     this.newweight,
                                     this.last_measurement);
-
 };
 
 //turn a map from a string into an array
@@ -243,10 +242,16 @@ MapFilter.prototype.newweight = function(particle, measurement) {
     var row = particle[0];
     var col = particle[1];
 
-    //P(wall measurement|wall) = .95
-    var p_wallm_wall = .95;
-    //P(wall measurement|no wall) = .05
-    var p_wallm_nowall = .05;
+    var p_random = that.p_random_measurement;
+
+    //P(wall measurement|wall) = P(~random) + P(random)/2
+    //= the probability of a correct measurement plus the probability of a
+    //randomly correct measurement
+    var p_wallm_wall = (1 - p_random) + (p_random / 2);
+
+    //P(wall measurement|no wall) = P(random)/2
+    //= the probability of a randomly incorrect measurement
+    var p_wallm_nowall = p_random / 2;
 
     var probabilities = [];
 
