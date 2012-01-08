@@ -1,0 +1,49 @@
+<html><head><title>Particle Filters</title>
+<link href="../css/style.css" type="text/css" rel="stylesheet" media="screen"/>
+</head><body>
+
+<p>If Alpha is to find himself, he's going to need to find a way to overcome 
+his unreliable movement and sensors.
+
+<p>Which is where particle filters come in. The basic idea is that we want to 
+make some number <em>N</em> of imaginary robots, scatter them around the world 
+we're in, then measure how likely each one is to accord with the measurements 
+we've made.
+
+<p>With this in mind, we again make <em>N</em> imaginary robots, but this time 
+place them according to the likelihood we measured in the first step.
+
+<p>Then we again measure how likely each one is according to our new 
+measurement, and the cycle continues.
+
+<p>Each "imaginary robot" is called a particle, and is paired with a weight.
+
+<p>Here is the core of the algorithm in javascript:
+
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">var</span> new_weights <span style="color: #666666">=</span> [];
+<span style="color: #008000; font-weight: bold">var</span> new_particles <span style="color: #666666">=</span> [];
+
+<span style="color: #408080; font-style: italic">//For each of N particles</span>
+<span style="color: #008000; font-weight: bold">for</span> (<span style="color: #008000; font-weight: bold">var</span> i<span style="color: #666666">=0</span>; i <span style="color: #666666">&lt;</span> particles.length; i<span style="color: #666666">++</span>) {
+    
+    <span style="color: #408080; font-style: italic">//Choose a new particle with respect to the weights of each particle</span>
+    <span style="color: #008000; font-weight: bold">var</span> j <span style="color: #666666">=</span> weighted_sample(weights, particles);
+
+    <span style="color: #408080; font-style: italic">//move the particle as if it were the robot. i.e. if the robot tried to </span>
+    <span style="color: #408080; font-style: italic">//move right, we move the particle right with the same probability as the </span>
+    <span style="color: #408080; font-style: italic">//robot. In our case, that means that the particle has an 80% chance of </span>
+    <span style="color: #408080; font-style: italic">//moving in the intended direction.</span>
+    <span style="color: #008000; font-weight: bold">var</span> xp <span style="color: #666666">=</span> update_particle(j, control);
+
+    <span style="color: #408080; font-style: italic">//Now measure how likely it is that the particle measured what the robot </span>
+    <span style="color: #408080; font-style: italic">//measured, and use that as the weight of the particle</span>
+    <span style="color: #008000; font-weight: bold">var</span> wp <span style="color: #666666">=</span> update_weight(xp, measurement);
+
+    <span style="color: #408080; font-style: italic">//and push the new (weight, particle) pair</span>
+    new_weights.push(xp);
+    new_particles.push(wp);
+}
+</pre></div>
+
+</body>
+</html>
