@@ -49,25 +49,30 @@ $(window).load(function() {
 });
 </script>
 <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen"/>
+<link href="../css/book.css" type="text/css" rel="stylesheet" media="screen"/>
 </head><body>
 <img id="robotimg" src="../images/robot.png" style="display:none">
 
-<p>When I was taking the <a href="XXX">Stanford AI class</a>, one of the few 
-topics I thought was poorly covered was that of particle filters. They say that 
-the best way to learn something is to teach it, so this article is my attempt 
-at understanding what particle filters are, and how they work. It concludes 
-with a demo that looks like this:
+<div class="content" id="content">
 
-<div id="canvas">
-    <canvas id="themaze" width="900" height="300"></canvas>
+    <p>When I was taking the <a href="XXX">Stanford AI class</a>, one of the few 
+    topics I thought was poorly covered was that of particle filters. They say that 
+    the best way to learn something is to teach it, so this article is my attempt 
+    at understanding what particle filters are, and how they work. It concludes 
+    with a demo that looks like this:
+
+    <div id="canvas">
+        <canvas id="themaze" width="900" height="300"></canvas>
+    </div>
+
+    <p>(Press the arrow keys to move the robot; the particles will show you where 
+    he thinks he is located. Note that sometimes the arrow keys will not move the 
+    robot where you intend; this is part of the problem that we're using particle 
+    filters to solve).
+
+    <p><a href="article2.html">Next ---></a>
+
 </div>
-
-<p>(Press the arrow keys to move the robot; the particles will show you where 
-he thinks he is located. Note that sometimes the arrow keys will not move the 
-robot where you intend; this is part of the problem that we're using particle 
-filters to solve).
-
-<p><a href="article2.html">Next ---></a>
 
 </body>
 </html>

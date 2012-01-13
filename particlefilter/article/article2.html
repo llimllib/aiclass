@@ -25,23 +25,29 @@ $(window).load(function() {
 });
 </script>
 <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen"/>
+<link href="../css/book.css" type="text/css" rel="stylesheet" media="screen"/>
 </head><body>
-<p>Imagine that we have a little robot, whom we'll call "Alpha". He looks like 
-this: <img id="robotimg" src="../images/robot.png">.
 
-<p>Alpha lives in a gridded world, and he has a good internal model of the map, 
-which might look like this:
+<div class="content" id="content">
 
-<div id="canvas">
-    <canvas id="themaze" width="900" height="300"></canvas>
+    <p>Imagine that we have a little robot, whom we'll call "Alpha". He looks like 
+    this: <img id="robotimg" src="../images/robot.png">.
+
+    <p>Alpha lives in a gridded world, and he has a good internal model of the map, 
+    which might look like this:
+
+    <div id="canvas">
+        <canvas id="themaze" width="900" height="300"></canvas>
+    </div>
+
+    <p>He can travel into any of the blank spots on the grid, but never into any of 
+    the filled squares, or off the map.
+
+    <!-- TODO: talk about map coordinates here? -->
+
+    <p><a href="article3.html">Next ---></a>
+
 </div>
-
-<p>He can travel into any of the blank spots on the grid, but never into any of 
-the filled squares, or off the map.
-
-<!-- TODO: talk about map coordinates here? -->
-
-<p><a href="article3.html">Next ---></a>
 
 </body>
 </html>

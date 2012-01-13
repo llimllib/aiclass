@@ -1,24 +1,27 @@
 <html><head><title>Particle Filters</title>
 <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen"/>
+<link href="../css/book.css" type="text/css" rel="stylesheet" media="screen"/>
 </head><body>
 
-<p>If Alpha is to find himself, he's going to need to find a way to overcome 
-his unreliable movement and sensors.
+<div class="content" id="content">
 
-<p>Which is where particle filters come in. The basic idea is that we want to 
-make some number <em>N</em> of imaginary robots, scatter them around the world 
-we're in, then measure how likely each one is to accord with the measurements 
-we've made.
+    <p>If Alpha is to find himself, he's going to need to find a way to overcome 
+    his unreliable movement and sensors.
 
-<p>With this in mind, we again make <em>N</em> imaginary robots, but this time 
-place them according to the likelihood we measured in the first step.
+    <p>Which is where particle filters come in. The basic idea is that we want to 
+    make some number <em>N</em> of imaginary robots, scatter them around the world 
+    we're in, then measure how likely each one is to accord with the measurements 
+    we've made.
 
-<p>Then we again measure how likely each one is according to our new 
-measurement, and the cycle continues.
+    <p>With this in mind, we again make <em>N</em> imaginary robots, but this time 
+    place them according to the likelihood we measured in the first step.
 
-<p>Each "imaginary robot" is called a particle, and is paired with a weight.
+    <p>Then we again measure how likely each one is according to our new 
+    measurement, and the cycle continues.
 
-<p>Here is the core of the algorithm in javascript:
+    <p>Each "imaginary robot" is called a particle, and is paired with a weight.
+
+    <p>Here is the core of the algorithm in javascript:
 
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">var</span> new_weights <span style="color: #666666">=</span> [];
 <span style="color: #008000; font-weight: bold">var</span> new_particles <span style="color: #666666">=</span> [];
@@ -45,7 +48,9 @@ measurement, and the cycle continues.
 }
 </pre></div>
 
-<p><a href="article5.html">Next ---></a>
+    <p><a href="article5.html">Next ---></a>
+
+</div>
 
 </body>
 </html>
