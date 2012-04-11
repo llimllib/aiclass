@@ -48,7 +48,7 @@ MapFilter.prototype.init = function(map, nparticles, p_random_measurement) {
     this.actual_measurement = this.omniscent_sense(botloc);
 
     this.particles = ParticleFilter(this.particles,
-                                    moveparticle,
+                                    this.moveparticle,
                                     "none",
                                     this.newweight,
                                     this.last_measurement);
@@ -148,7 +148,7 @@ MapFilter.prototype.movebot = function(direction) {
     console.log("mesaurement: "+ measurement);
 
     this.particles = ParticleFilter(this.particles,
-                                    moveparticle,
+                                    this.moveparticle,
                                     direction,
                                     this.newweight,
                                     measurement);
@@ -232,7 +232,7 @@ MapFilter.prototype.find_walls = function(row, col) {
     return walls;
 };
 
-var moveparticle = function(particle, direction) {
+MapFilter.prototype.moveparticle = function(particle, direction) {
     var row = particle[0];
     var col = particle[1];
 
