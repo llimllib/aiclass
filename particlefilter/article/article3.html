@@ -49,9 +49,6 @@ function onKeyDown(evt) {
 
         drawmap(ctx, mapfilter.map, mapfilter.particles[0]);
 
-        evt.stopPropagation();
-        evt.preventDefault();
-
         show_measurement(mapfilter.last_measurement, mapfilter.actual_measurement);
     }
 }
@@ -77,8 +74,10 @@ $(window).load(function() {
 <img id="robotimg" src="../images/robot.png" style="display:none">
 
 <div class="content" id="content">
+    
+    <h1>The Problem</h1>
 
-    <p>The problem is, Alpha doesn't know which square he's in. In order to find
+    <p>Alpha doesn't know which square he's in. In order to find
     himself, he has two tools: he can move, and he can sense whether there are
     walls around him or not.
 
@@ -111,7 +110,10 @@ $(window).load(function() {
         </div>
     </div>
 
-    <p><a href="article4.html">Next ---></a>
+    <div class="navigation">
+        <a href="article2.html">&lt;--- Prev</a> |
+        <a href="article4.html">Next ---&gt;</a>
+    </div>
 
 </div>
 
